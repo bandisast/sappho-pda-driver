@@ -1,0 +1,6 @@
+#!/bin/bash
+gcc sgk_pda.c -o sgk_pda -lpthread -lprussdrv -lm
+sleep .1
+pasm -b PRU0.p
+sleep .1
+pasm -b PRU1.p

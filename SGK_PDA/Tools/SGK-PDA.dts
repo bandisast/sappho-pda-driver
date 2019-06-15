@@ -1,0 +1,117 @@
+/*
+ *Stratos Gkagkanis
+ *Thesis Project:
+ *"Fabrication of a photodiode sensor system using the Beaglebone
+ *microcomputer for use in non-invasive biomedical sensors."
+ *Complete Device Tree Overlay file.
+ *Hardware: TSC-ADC Module, PRU0, PRU1.
+ *I/O:	AIN0 (AO), GPIO3_19 (CLK), GPIO3_21 (SI), GPIO1_13 (DEBUG)	
+ */
+ 
+/dts-v1/;
+/plugin/;
+
+/{
+	compatible = "ti,beaglebone", "ti,beaglebone-black";
+	part-number = "SGK-PDA";
+	version = "00A0";
+	
+	exclusive-use =
+		//P8 Header
+		"P8.20",	//Debug Pin (GPIO1_13  // GPIO 45)
+		"gpio1_13",
+		"P8.14",	//LED RED (GPIO0_26)
+		"gpio0_26",
+		"P8.15",	//LED GREEN (GPIO1_15)
+		"gpio1_15",
+		"P8.16",	//LED BLUE (GPIO1_14)
+		"gpio1_14",
+		
+		//P9 Header
+		"P9.25",	//SI Pin (GPIO3_21 // GPIO 117)
+		"gpio3_21",
+		"P9.27",	//Clock Generator Pin (GPIO3_19  // GPIO 115)
+		"gpio3_19",
+		"P9.39",	//AIN0 Pin
+		"AIN0",		
+		"P9.12",	//Button (GPIO1_28)
+		"gpio1_28",
+
+		//Hardware
+		"pru0",		//PRU0
+		"pru1",		//PRU1
+		"tscadc"; 	//Touchsrceen and Analog to Digital Converter
+		
+	fragment@0{
+			target = <&am33xx_pinmux>;
+			__overlay__{
+			pru_pru_pins: sgk_pda_pru_pins {
+				pinctrl-single,pins = <
+					0x1ac 0x05	// P9_25 pr1_pru0_pru_r30_7,	MODE5 | OUT_PD | PRU0 - SI
+					0x1a4 0x05  // P9_27 pr1_pru0_pru_r30_5,	MODE5 | OUT_PD | PRU0 - CLK
+					0x084 0x05  // P8_20 pr1_pru1_pru_r30_13,	MODE5 | OUT_PD | PRU1 - DEBUG
+				>;
+				};
+			arm_contr_pins: sgk_pda_arm_pins {
+				pinctrl-single,pins = <
+					0x078 0x27	// P9_12 gpio1[28],				MODE7 | IN_PD  | ARM - BUTTON
+					0x028 0x07	// P8_14 gpio0[26],				MODE7 | OUT_PD | ARM - LED RED
+					0x03c 0x07	// P8_15 gpio1[15],				MODE7 | OUT_PD | ARM - LED GREEN
+					0x038 0x07	// P8_16 gpio1[14],				MODE7 | OUT_PD | ARM - LED BLUE
+				>;
+				};
+			};
+	};
+	
+	fragment@1 {
+      target = <&pruss>;
+      __overlay__ {
+         status = "okay";
+         pinctrl-names = "default";
+         pinctrl-0 = <&pru_pru_pins>;
+		SGK_pins{
+                pin-names = "pin319","pin321","pin131";
+                gpios     = <&gpio3 17 0
+							 &gpio3 15 0
+							 &gpio1 63 0
+							 >;
+                };
+      };
+   };
+   
+   fragment@2 {         // Enable the GPIOs
+      target = <&ocp>;
+      __overlay__ {
+         arm_contr_pins_pinmux {
+            //compatible = "gpio-of-helper";
+			compatible = "bone-pinmux-helper";
+            status = "okay";
+            pinctrl-names = "default";
+            pinctrl-0 = <&arm_contr_pins>;
+		SGK_pins{
+                pin-names = "pin128","pin026","pin115","pin114";
+                gpios     = <&gpio1 60 0
+							 &gpio0 26 0
+							 &gpio1 47 0
+							 &gpio1 46 0
+							 >;
+                };
+         };
+      };
+   };
+   
+   fragment@3{
+			target = <&tscadc>;
+			__overlay__{
+			status = "okay";
+			adc {
+				ti,adc-channels = <0>;
+				ti,chan-step-avg=<0x0>;
+				ti,chan-step-opendelay=<0x0>;
+				ti,chan-step-sampledelay=<0x0>;
+				//for the meaning of the above:
+				//https://www.kernel.org/doc/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+				};
+			};
+	};
+};
