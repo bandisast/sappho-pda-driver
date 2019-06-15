@@ -1,0 +1,6 @@
+#!/bin/bash
+modprobe uio_pruss
+echo SGK-PDA > /sys/devices/platform/bone_capemgr/slots
+sleep .5
+clear
+echo "uio_pruss and SGK cape enabled."
