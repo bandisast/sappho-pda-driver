@@ -1,5 +1,0 @@
-rm /lib/firmware/SGK-PDA-00A0.dtbo
-dtc -O dtb -o SGK-PDA-00A0.dtbo -b 0 -@ SGK-PDA.dts
-sudo cp SGK-PDA-00A0.dtbo /lib/firmware
-echo "New cape file has replaced the old one."
-echo "If the old one was mounted please restart the device."
