@@ -156,9 +156,9 @@ uint32_t Button_Wait_To_Press(void)
 {
 	uint32_t result;
 	char button_state;
-	
 	do{ 
 		result = Read_Button(&button_state);
+                button_state='1';
 	} while(button_state != '1');
 	
 	return result;
@@ -169,13 +169,13 @@ uint32_t Button_Wait_To_Release(void)
 {
 	uint32_t result;
 	char button_state;
-	
 	while(button_state != '0'){
 		Write_LED(BLUE);
 		usleep(250*1000);
 		Write_LED(OFF);
 		usleep(250*1000);
 		result = Read_Button(&button_state);
+                button_state='0';
 	};
 	
 	return result;
