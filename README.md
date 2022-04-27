@@ -1,4 +1,4 @@
-# PDA_Driver
+# S.AP.P.H.O. PDA Driver
 This repository contains the source files and the assets of the PDA driver i developed for my Thesis:
 
 "Fabrication of a photodiode sensor system using the BeagleBone microcomputer for use in non-invasive biomedical sensors"
