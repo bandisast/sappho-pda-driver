@@ -1,11 +1,9 @@
 # S.AP.P.H.O. PDA Driver
-This repository contains the source files and the assets of the PDA driver i developed for my Thesis:
+### Scattering-based APparatus for Portable Haematological analysis via Optics
 
-"Fabrication of a photodiode sensor system using the BeagleBone microcomputer for use in non-invasive biomedical sensors"
+This repository is a fork of StratosGK's "SGK_PDA" driver for the AMS TSL1401CL PDA. This fork will serve as the driver for the Toshiba TCD1103GFG PDA, which is used in our thesis (Scattering measurements with the Beaglebone microcomputer for portable biomedical sensors). Our thesis is the immediate successor of StratosGK's thesis (Fabrication of a photodiode sensor system using the BeagleBone microcomputer for use in non-invasive biomedical sensors).
 
-The aim of the thesis, is the fabrication of a photodiode sensor system that will be able to extract and store samples, taken with non-invasive methods from the patient’s fingers.
+Target Platform: Beaglebone Black Rev. C
+Toshiba TCD1103GFG PDA
 
-BeagleBone Black is the the target platform.
-The PDA is TSL1401CL by ams.
-
-The folder SGK_PDA should be copied inside the folder /home/Debian.
+The directory sappho-pda should be copied inside the directory /home/debian.
