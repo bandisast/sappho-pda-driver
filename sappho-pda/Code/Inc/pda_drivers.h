@@ -44,20 +44,20 @@
 #define ErrorSecondsSleep (2)	//How many seconds will the LED stay Red.
 
 /* PDA */
-#define PIXELS 			(128)
+#define PIXELS 			(1500)
 #define MIN_CLK_FREQ	(5)
 #define MAX_CLK_FREQ	(8000)
 #define MIN_INTGR_TIME	(33.75)
 #define MAX_INTGR_TIME	(22020)
 
 /* CALCULATION MACROS */
-#define EXTRA_PULSE				(1) // One extra pulse is required at the end
+#define EXTRA_PULSE				(14) // 14 extra pulses are required at the end
 #define EXTRA_WAIT_B4_NEXT_SI	(20) // 20us exta time between integrations
 #define uS_TO_S					(0.000001) // conversion from us to s
 #define S_TO_uS					(1000000)
 #define INTGR_PULSE_QUARTER		((PIXELS+EXTRA_PULSE)*4+1) // Duration of a quarter of a pulse for integration
 #define INSTRUCTION_DELAY		(0.00000001) // Minimum delay time for a delay loop
-#define FIRST_18_PULSES			(18) // The first 18 setup clock pulses
+#define FIRST_32_PULSES			(32) // The first 32 setup clock pulses
 #define KHZ_TO_MHZ				(1000)
 
 /* PATHS */

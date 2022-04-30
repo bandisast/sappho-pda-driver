@@ -190,13 +190,13 @@ static uint32_t Delay_Calculation(void)
 
 	charge_time += (((intgr_pulse_quarter*2) - (intgr_half_delay_instr * INSTRUCTION_DELAY))*(INTGR_PULSE_QUARTER-3)/2);
 
-	charge_instr = intgr_quarter_delay_instr*3 + intgr_half_delay_instr*(FIRST_18_PULSES*2-1) + intgr_half_delay_instr + (int) (charge_time /INSTRUCTION_DELAY);
+	charge_instr = intgr_quarter_delay_instr*3 + intgr_half_delay_instr*(FIRST_32_PULSES*2-1) + intgr_half_delay_instr + (int) (charge_time /INSTRUCTION_DELAY);
 	
 	read_instr_full = (int) ((1/(clkfreq*KHZ_TO_MHZ)) / 2 / INSTRUCTION_DELAY);
 	read_instr_half = read_instr_full / 2;
 	
 	extra_time = (1/fps) - (intgr_time/S_TO_uS) - ((1/(clkfreq * KHZ_TO_MHZ)/2*(PIXELS*2+1))+(1/(clkfreq*KHZ_TO_MHZ)/4*3));
-	extra_instr = ((int)(extra_time / INSTRUCTION_DELAY)) - (intgr_quarter_delay_instr*3 + intgr_half_delay_instr*(FIRST_18_PULSES*2-1)) ;
+	extra_instr = ((int)(extra_time / INSTRUCTION_DELAY)) - (intgr_quarter_delay_instr*3 + intgr_half_delay_instr*(FIRST_32_PULSES*2-1)) ;
 		
 	return NO_ERR;
 }
