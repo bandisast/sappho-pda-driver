@@ -37,7 +37,7 @@
 
 //GPIO
 #define CLK			r30.t5
-#define	SI			r30.t7
+#define	SH			r30.t7
 
 .macro INTdelayHALF
 	MOV Rtemp, RintgrHALF
@@ -136,7 +136,7 @@ DELAY9:
 //---------------------------------------------------------------------
 
 INIT_PRU0:
-	CLR SI						//SI pin = 0
+	CLR SH						//SH pin = 0
 	CLR CLK						//CLK pin = 0
 	MOV Rdonothing, 0			//Register value init.
 	MOV RreadHALF, 0			//Register value init.
@@ -164,11 +164,11 @@ MAIN_PRU0:
 	//		After 18 clock cycles the integration cycle for the next clock out cycle will begin.
 	//INTdelayCHARGE				//We need this delay. 20.005us
 	MOV Rpixelscntr, Rpixels
-	SET SI
+	SET SH
 	INTdelayHALF
 	SET CLK			
 	INTdelayHALF
-	CLR SI			
+	CLR SH			
 	INTdelayHALF
 	CLR CLK
 	ADD Rdonothing, Rdonothing, 0
@@ -189,18 +189,18 @@ DummyLoop:
 	//		on the AO during the next integration period.
 	//		The PDA integrates the next period while it clocks out the previous.
 	MOV Rpixelscntr, Rpixels 	//Inner Counter will count the pixels as they get clocked out.
-	SET SI					//NEW CYCLE. Integration will begin after 18 clock cycles.
+	SET SH					//NEW CYCLE. Integration will begin after 18 clock cycles.
 	READdelayHALF0				//Wait for a quarter of a period.
 	SET CLK					
 	MOV r31, 32 | 2			//Interrupt PRU1 in order to Sample.
 	READdelayHALF1				//Wait for a quarter of a period.
-	CLR SI					
+	CLR SH					
 	READdelayHALF0				//Wait for a quarter of a period.
 	CLR CLK
 	READdelayFULLoff0			//Wait for half a period.
 REPEAT:
 	SET CLK
-	QBEQ SkipSample, Rpixelscntr, 1	//If Inner Counter = 1, Dont take sample. Its the n+1 clock which clocks out SI pulse.
+	QBEQ SkipSample, Rpixelscntr, 1	//If Inner Counter = 1, Dont take sample. Its the n+1 clock which clocks out SH pulse.
 	MOV r31, 32 | 2			//Interrupt PRU1 in order to Sample.
 SkipSample:
 	READdelayFULLon		//Wait for half a period.
