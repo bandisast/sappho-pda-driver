@@ -34,7 +34,7 @@ extern uint32_t Save_Samples(void);
 /**********/
 
 /* DIRECTORY RELATED MACROS */
-#define SAMPLES_PATH "/home/debian/SGK_PDA/Samples/"
+#define SAMPLES_PATH "/home/debian/sappho-pda/Samples/"
 #define SAMPLES_NAME "Sample_"
 #define SAMPLES_NAME_LEN 7
 #define SAMPLES_COMPL_NAME_LEN 11

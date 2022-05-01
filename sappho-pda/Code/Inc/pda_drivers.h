@@ -45,14 +45,14 @@
 
 /* PDA */
 #define PIXELS 			(1500)
-#define MIN_CLK_FREQ	(5)
-#define MAX_CLK_FREQ	(8000)
+#define MIN_CLK_FREQ	(400)
+#define MAX_CLK_FREQ	(4000)
 #define MIN_INTGR_TIME	(33.75)
 #define MAX_INTGR_TIME	(22020)
 
 /* CALCULATION MACROS */
 #define EXTRA_PULSE				(14) // 14 extra pulses are required at the end
-#define EXTRA_WAIT_B4_NEXT_SI	(20) // 20us exta time between integrations
+#define EXTRA_WAIT_B4_NEXT_SI	(10) // 20us exta time between integrations
 #define uS_TO_S					(0.000001) // conversion from us to s
 #define S_TO_uS					(1000000)
 #define INTGR_PULSE_QUARTER		((PIXELS+EXTRA_PULSE)*4+1) // Duration of a quarter of a pulse for integration
@@ -61,8 +61,8 @@
 #define KHZ_TO_MHZ				(1000)
 
 /* PATHS */
-#define PRU0_BIN_PATH "/home/debian/SGK_PDA/Code/PRU/PRU0.bin"
-#define PRU1_BIN_PATH "/home/debian/SGK_PDA/Code/PRU/PRU1.bin"
+#define PRU0_BIN_PATH "/home/debian/sappho-pda/Code/PRU/PRU0.bin"
+#define PRU1_BIN_PATH "/home/debian/sappho-pda/Code/PRU/PRU1.bin"
 
 /* Return Codes
 unsigned int (32bit, big endian, 0 ~ 4.294.967.295) */

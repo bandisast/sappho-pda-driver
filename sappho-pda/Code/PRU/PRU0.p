@@ -36,108 +36,51 @@
 #define	Rdonothing		r13
 
 //GPIO
-#define CLK			r30.t5
-#define	SH			r30.t7
+#define CLK			r30.t5 //P9_27
+#define	SH			r30.t7 //P9_25
+#define ICG         r30.t2 //P9_30
 
-.macro INTdelayHALF
-	MOV Rtemp, RintgrHALF
-	SUB Rtemp, Rtemp, 3
-	ADD Rtemp, Rtemp, 1
-DELAY0:
-	SUB Rtemp, Rtemp, 1
-	QBNE DELAY0, Rtemp, 0
-.endm
-
-.macro INTdelayFULLoff
-	MOV Rtemp, RintgrFULL
-	SUB Rtemp, Rtemp, 4
-	ADD Rtemp, Rtemp, 1
+//CLOCK: 2MHz <-> 500ns
+.macro CLOCK_RISING_EDGE //clock = 1, then delay 240ns
+    SET CLK
+	MOV Rtemp, 23 //(24 * 2 + 2)(instructions) * 5 (ns/instruction) = 240ns delay
 DELAY1:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY1, Rtemp, 0
 .endm
 
-.macro INTdelayFULLon
-	MOV Rtemp, RintgrFULL
-	SUB Rtemp, Rtemp, 3
-	ADD Rtemp, Rtemp, 1
+.macro CLOCK_FALLING_EDGE //clock = 0, then delay 240ns
+    CLR CLK
+	MOV Rtemp, 24 //240 ns delay
 DELAY2:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY2, Rtemp, 0
 .endm
 
-.macro INTdelayCHARGE	//Charge Transfer Time is the minimum time needed for the sampling capacitor
-						//to charge to the voltage level of the integrating capacitor.
-	MOV Rtemp, 1998		//20us
-	ADD Rtemp, Rtemp, RintgrCHARGE
+.macro CLOCK_FIX //add a delay of 10ns between CLOCK_RISING_EDGE AND CLOCK_FALLING_EDGE
+//this will allow us to fit TWO instructions between clock pulses, if needed, without skewing the clock
+    ADD Rdonothing, Rdonothing, 0
+    ADD Rdonothing, Rdonothing, 0
+.endm
+
+.macro CLOCK_WAVE //a full 2MHz wave (500ns)
+    CLOCK_RISING_EDGE
+    CLOCK_FIX 
+    CLOCK_FALLING_EDGE
+    CLOCK_FIX
+.endm
+
+.macro CLOCK_NO_OP_QUARTER_DELAY //120ns delay, no operation
+	MOV Rtemp, 12 //120 ns delay
 DELAY3:
 	SUB Rtemp, Rtemp, 1
-	QBNE DELAY3, Rtemp, 0
+	QBNE DELAY2, Rtemp, 0
 .endm
-
-.macro READdelayHALF0
-	MOV Rtemp, RreadHALF
-	SUB Rtemp, Rtemp, 3
-	ADD Rtemp, Rtemp, 1
-DELAY4:
-	SUB Rtemp, Rtemp, 1
-	QBNE DELAY4, Rtemp, 0
-.endm
-
-.macro READdelayHALF1
-	MOV Rtemp, RreadHALF
-	SUB Rtemp, Rtemp, 4
-	ADD Rtemp, Rtemp, 1
-	ADD Rdonothing, Rdonothing, 0
-DELAY5:
-	SUB Rtemp, Rtemp, 1
-	QBNE DELAY5, Rtemp, 0
-.endm
-
-.macro READdelayFULLon
-	MOV Rtemp, RreadFULL
-	SUB Rtemp, Rtemp, 4
-	ADD Rtemp, Rtemp, 1
-	ADD Rdonothing, Rdonothing, 0
-DELAY6:
-	SUB Rtemp, Rtemp, 1
-	QBNE DELAY6, Rtemp, 0
-.endm
-
-.macro READdelayFULLoff0
-	MOV Rtemp, RreadFULL
-	SUB Rtemp, Rtemp, 3
-	ADD Rtemp, Rtemp, 1
-DELAY7:
-	SUB Rtemp, Rtemp, 1
-	QBNE DELAY7, Rtemp, 0
-.endm
-
-.macro READdelayFULLoff1
-	MOV Rtemp, RreadFULL
-	SUB Rtemp, Rtemp, 4
-	ADD Rtemp, Rtemp, 1
-DELAY8:
-	SUB Rtemp, Rtemp, 1
-	QBNE DELAY8, Rtemp, 0
-.endm
-
-.macro DelayPhase
-	MOV Rtemp, RextraDelay
-	SUB Rtemp, Rtemp, 6
-	ADD Rtemp, Rtemp, 1
-	ADD Rdonothing, Rdonothing, 0
-DELAY9:
-	SUB Rtemp, Rtemp, 1
-	QBNE DELAY9, Rtemp, 0
-.endm
-
-//---------------------------------------------------------------------
-//---------------------------------------------------------------------
 
 INIT_PRU0:
 	CLR SH						//SH pin = 0
 	CLR CLK						//CLK pin = 0
+    SET ICG                     //ICG pin = 1
 	MOV Rdonothing, 0			//Register value init.
 	MOV RreadHALF, 0			//Register value init.
 	MOV r0, BRO_RAM				//Point to PRU1 RAM
@@ -157,63 +100,51 @@ HANDSHAKE:
 	LBBO Rdata, Rtemp, Handshake_Offset, 4		//ARM HANDSHAKE
 	QBNE HANDSHAKE, Rdata, 111					//Stay here until Rdata = 111.
 	
-	//MAIN_CODE_PRU0
+CLOCK_WAVE //a few clock pulses for initiation
+CLOCK_WAVE
+CLOCK_WAVE
+CLOCK_WAVE
+CLOCK_WAVE
+	//MAIN CODE PRU0
 MAIN_PRU0:
-	//A.	Dummy "Clock Out" cycle.
-	//		This Clock Out cycle will not be sampled, due to indeterminate data after power up.
-	//		After 18 clock cycles the integration cycle for the next clock out cycle will begin.
-	//INTdelayCHARGE				//We need this delay. 20.005us
+//=========PDA-Initiation=========
+//First pulse | ICG -> LOW | SH -> HIGH
+//Pulse timing of ICG and SH
 	MOV Rpixelscntr, Rpixels
-	SET SH
-	INTdelayHALF
-	SET CLK			
-	INTdelayHALF
-	CLR SH			
-	INTdelayHALF
-	CLR CLK
-	ADD Rdonothing, Rdonothing, 0
-	ADD Rdonothing, Rdonothing, 0
-DummyLoop:
-	INTdelayFULLoff
-	SET CLK			
-	INTdelayFULLon
-	CLR CLK
-	SUB Rpixelscntr, Rpixelscntr, 1
-	QBNE DummyLoop, Rpixelscntr, 0
-	INTdelayCHARGE
-	
+    SET CLK //begin sampling cycle
+    CLR ICG //clear initiation gate
+    CLOCK_NO_OP_QUARTER_DELAY //Time since rising edge: 125ns
+    SET SH //SH pin = 1
+    CLOCK_NO_OP_QUARTER_DELAY //t2 (datasheet) = 125ns | Time since rising edge: 250ns
+    CLOCK_FALLING_EDGE 
+    CLOCK_FIX //First pulse done (500ns)
 
-	//B.	Real "Clock Out" cycle.
-	//		From this point on, every sample is saved and used.
-	//		Data from the light sampled during one integration period is made avalaible
-	//		on the AO during the next integration period.
-	//		The PDA integrates the next period while it clocks out the previous.
-	MOV Rpixelscntr, Rpixels 	//Inner Counter will count the pixels as they get clocked out.
-	SET SH					//NEW CYCLE. Integration will begin after 18 clock cycles.
-	READdelayHALF0				//Wait for a quarter of a period.
-	SET CLK					
-	MOV r31, 32 | 2			//Interrupt PRU1 in order to Sample.
-	READdelayHALF1				//Wait for a quarter of a period.
-	CLR SH					
-	READdelayHALF0				//Wait for a quarter of a period.
-	CLR CLK
-	READdelayFULLoff0			//Wait for half a period.
-REPEAT:
-	SET CLK
-	QBEQ SkipSample, Rpixelscntr, 1	//If Inner Counter = 1, Dont take sample. Its the n+1 clock which clocks out SH pulse.
-	MOV r31, 32 | 2			//Interrupt PRU1 in order to Sample.
-SkipSample:
-	READdelayFULLon		//Wait for half a period.
-	CLR CLK			//CLK = 0. After this instruction we are done with 1 sample out of 128 of the cycle.
-	READdelayFULLoff1	//Wait half a period.
-	SUB Rpixelscntr, Rpixelscntr, 1	//Decease inner counter.
-	QBNE REPEAT, Rpixelscntr, 0		//If inner counter != 0 current cycle is not over.
-	DelayPhase
-	SUB Rframescntr, Rframescntr, 1	//Decrease outer counter.
-	QBNE MAIN_PRU0, Rframescntr, 0	//If outer counter != 0 there is at least one more integration cycle so start again.
-	
-DONE:
-	MOV Rdata, 55255				//END_CODE
-	MOV Rtemp, SHARED_RAM
-	SBBO Rdata, Rtemp, Handshake_Offset, 4
-	HALT		//CPU stops working.
+    //SH -> LOW
+    //t3 (shift pulse width) ~ 1000ns = 2CLK pulses
+    CLOCK_WAVE
+    CLOCK_WAVE
+    SET CLK
+    CLR SH //5ns
+    CLOCK_RISING_EDGE //240+5+5 (second SET) = 250ns
+    CLOCK_FALLING_EDGE
+    CLOCK_FIX 
+
+    //ICG -> HIGH
+    //t1 (icg pulse delay) ~ 4010ns = 10CLK pulses
+    CLOCK_WAVE
+    CLOCK_WAVE //1000ns
+    CLOCK_WAVE
+    CLOCK_WAVE //2000ns
+    CLOCK_WAVE 
+    CLOCK_WAVE //3000ns
+    CLOCK_WAVE 
+    CLOCK_WAVE //4000ns
+    SET CLK
+    SET ICG //set initiation gate | 4010ns | sampling start
+    CLOCK_RISING_EDGE //t4 (pulse timing of ICG and CLK) is OK.
+    CLOCK_FALLING_EDGE
+    CLOCK_FIX //4500ns
+
+
+
+
