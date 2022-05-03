@@ -110,7 +110,7 @@ MAIN_PRU0:
 //=========PDA-Initiation=========
 //First pulse | ICG -> LOW | SH -> HIGH
 //Pulse timing of ICG and SH
-	MOV Rpixelscntr, Rpixels
+    MOV Rpixelscntr, 1500 
     SET CLK //begin sampling cycle
     CLR ICG //clear initiation gate
     CLOCK_NO_OP_QUARTER_DELAY //Time since rising edge: 125ns
@@ -142,8 +142,50 @@ MAIN_PRU0:
     SET CLK
     SET ICG //set initiation gate | 4010ns | sampling start
     CLOCK_RISING_EDGE //t4 (pulse timing of ICG and CLK) is OK.
+    CLOCK_FALLING_EDGE 
+    MOV Rdonothing, 31 
+    ADD Rdonothing, Rdonothing, 0 //4500ns
+DummyOutFirstLoop:
+    CLOCK_RISING_EDGE //These outputs do not contain meaningful data
+    CLOCK_FIX       //This loop just ignores them while still producing a CLK pulse
     CLOCK_FALLING_EDGE
-    CLOCK_FIX //4500ns
+    SUB Rdonothing, Rdonothing, 1
+    QBNE DummyOutFirstLoop, Rdonothing, 0 //31 (+1 outside the loop) CLK pulses for trash data
+
+SamplingLoop:
+    SET CLK
+    MOV r31, 32 | 2	 //Interrupt PRU1 in order to Sample.
+    CLOCK_RISING_EDGE 
+    CLOCK_FALLING_EDGE
+    SUB Rpixelscntr, Rpixelscntr, 1
+    QBNE, SamplingLoop, Rpixelscntr, 0 //1500 CLK pulses for effective outputs
+
+PreDummyOutLast:
+    SET CLK
+    MOV Rdonothing, 13 //just to set the timer without skewing the clock
+    CLOCK_RISING_EDGE //1 of 14 dummy outputs with trash data
+    CLOCK_FALLING_EDGE
+    CLOCK_FIX
+
+DummyOutLastLoop:
+    CLOCK_RISING_EDGE //These outputs do not contain meaningful data
+    CLOCK_FIX       //This loop just ignores them while still producing a CLK pulse
+    CLOCK_FALLING_EDGE
+    SUB Rdonothing, Rdonothing, 1
+    QBNE DummyOutLastLoop, Rdonothing, 0 //31 (+1 outside the loop) CLK pulses for trash data
+
+CheckFrames:
+    CLOCK_RISING_EDGE
+    CLOCK_FIX           //Ccheck if there are more frames, without skewing the clock
+    CLOCK_FALLING_EDGE
+    SUB Rframescntr, Rframescntr, 1	//Decrease outer counter.
+    QBNE MAIN_PRU0, Rframescntr, 0	//If outer counter != 0 there is at least one more integration cycle so start again.
+
+DONE:
+	MOV Rdata, 55255				//END_CODE
+	MOV Rtemp, SHARED_RAM
+	SBBO Rdata, Rtemp, Handshake_Offset, 4
+	HALT		//CPU stops working.
 
 
 
