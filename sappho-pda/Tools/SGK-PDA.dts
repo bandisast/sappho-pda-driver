@@ -36,6 +36,9 @@
 		"AIN0",		
 		"P9.12",	//Button (GPIO1_28)
 		"gpio1_28",
+		"P9.14",	//PWM/CLK (GPIO1_18)
+    	"gpio1_18",
+
 
 		//Hardware
 		"pru0",		//PRU0
@@ -58,6 +61,7 @@
 					0x028 0x07	// P8_14 gpio0[26],				MODE7 | OUT_PD | ARM - LED RED
 					0x03c 0x07	// P8_15 gpio1[15],				MODE7 | OUT_PD | ARM - LED GREEN
 					0x038 0x07	// P8_16 gpio1[14],				MODE7 | OUT_PD | ARM - LED BLUE
+					0x848 0xf	// P9_14 gpio1[18],				MODE6 | OUT    | ARM - PWM
 				>;
 				};
 			};
@@ -89,11 +93,12 @@
             pinctrl-names = "default";
             pinctrl-0 = <&arm_contr_pins>;
 		SGK_pins{
-                pin-names = "pin128","pin026","pin115","pin114";
+                pin-names = "pin128","pin026","pin115","pin114","pin118";
                 gpios     = <&gpio1 60 0
 							 &gpio0 26 0
 							 &gpio1 47 0
 							 &gpio1 46 0
+							 &gpio1 18 0
 							 >;
                 };
          };
