@@ -182,7 +182,8 @@ static uint32_t Delay_Calculation(void)
 	double extra_time;
 	double charge_time;
 	
-	/* (PIXELS+1)*4+1 = 517 || 3 = half_delay || 514 = full_delay */
+	/*
+	(PIXELS+1)*4+1 = 517 || 3 = half_delay || 514 = full_delay 
 	intgr_pulse_quarter = ((intgr_time - EXTRA_WAIT_B4_NEXT_SI) * uS_TO_S) / INTGR_PULSE_QUARTER;
 	intgr_quarter_delay_instr = (int) (intgr_pulse_quarter / INSTRUCTION_DELAY);
 	intgr_half_delay_instr = (int) (intgr_pulse_quarter * 2 / INSTRUCTION_DELAY);
@@ -197,7 +198,7 @@ static uint32_t Delay_Calculation(void)
 	
 	extra_time = (1/fps) - (intgr_time/S_TO_uS) - ((1/(clkfreq * KHZ_TO_MHZ)/2*(PIXELS*2+1))+(1/(clkfreq*KHZ_TO_MHZ)/4*3));
 	extra_instr = ((int)(extra_time / INSTRUCTION_DELAY)) - (intgr_quarter_delay_instr*3 + intgr_half_delay_instr*(FIRST_32_PULSES*2-1)) ;
-		
+	*/
 	return NO_ERR;
 }
 
