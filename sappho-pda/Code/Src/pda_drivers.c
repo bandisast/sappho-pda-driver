@@ -150,23 +150,19 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 	
 	if (*argc != ARGUMENTS_NUM) {
 		printf("Incorrect arguments.\n");
-		printf("Example: ./pda_drivers 10 120 50 100\n");
+		printf("Example: ./pda_drivers 10 120 50\n");
 		printf("First argument: Number of Frames \n");
 		printf("Second argument: Integration Time in us. Min = 33.75us, Max = 22020us \n");
 		printf("Third argument: Frames per second (fps). \n");
-		printf("Fourth argument: Clock Frequency. Min = 5 KHz, Max = 8000 KHz.\n");
 		printf("Please try again.\n");
 		goto exit;
 	}
 	
-	clkfreq = abs(atof(argv[4]));
+	clkfreq = 2000;
 	frames = abs(atoi(argv[1]));
 	intgr_time = abs(atof(argv[2]));
 	fps = abs(atof(argv[3]));
 	
-	if(clkfreq < MIN_CLK_FREQ || clkfreq > MAX_CLK_FREQ) {
-		goto exit;
-	}
 	if(intgr_time < MIN_INTGR_TIME || intgr_time > MAX_INTGR_TIME) {
 		goto exit;
 	}
