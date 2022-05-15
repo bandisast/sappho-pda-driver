@@ -37,7 +37,7 @@
 /***************/
 /* Definitions */
 /***************/
-#define ARGUMENTS_NUM (5)
+#define ARGUMENTS_NUM (4)
 #define PRU0 0
 #define PRU1 1
 
@@ -47,8 +47,8 @@
 #define PIXELS 			(1500)
 #define MIN_CLK_FREQ	(400)
 #define MAX_CLK_FREQ	(4000)
-#define MIN_INTGR_TIME	(33.75)
-#define MAX_INTGR_TIME	(22020)
+#define MIN_INTGR_TIME	(0)
+#define MAX_INTGR_TIME	(200000)
 
 /* CALCULATION MACROS */
 #define EXTRA_PULSE				(14) // 14 extra pulses are required at the end
