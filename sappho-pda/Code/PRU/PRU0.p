@@ -34,12 +34,12 @@
 //GPIO
 #define CLK			r30.t5 //P9_27
 #define	SH			r30.t7 //P9_25
-#define ICG         r30.t2 //P9_30
+#define ICG         		r30.t2 //P9_30
 
 //CLOCK: 2MHz <-> 500ns
 .macro CLOCK_FALLING_EDGE //clock = 1, then delay 240ns
     CLR CLK
-	MOV Rtemp, 23 //(24 * 2 + 2)(instructions) * 5 (ns/instruction) = 240ns delay
+	MOV Rtemp, 24 //(24 * 2 + 2)(instructions) * 5 (ns/instruction) = 240ns delay
 DELAY1:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY1, Rtemp, 0
