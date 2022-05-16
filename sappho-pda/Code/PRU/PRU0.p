@@ -51,7 +51,7 @@ DELAY1:
 
 .macro CLOCK_FALLING_EDGE //clock = 0, then delay 240ns
     CLR CLK
-	MOV Rtemp, 24 //240 ns delay
+	MOV Rtemp, 23 //240 ns delay
 DELAY2:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY2, Rtemp, 0
