@@ -42,32 +42,32 @@
 #define ICG         r30.t2 //P9_30
 
 //CLOCK: 2MHz <-> 500ns
-.macro CLOCK_RISING_EDGE //clock = 1, then delay 240ns
-    SET CLK
+.macro CLOCK_FALLING_EDGE //clock = 1, then delay 240ns
+    CLR CLK
 	MOV Rtemp, 24 //((24-1) * 2 + 2)(instructions) * 5 (ns/instruction) = 240ns delay
 DELAY1:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY1, Rtemp, 0
 .endm
 
-.macro CLOCK_FALLING_EDGE //clock = 0, then delay 240ns
-    CLR CLK
+.macro CLOCK_RISING_EDGE //clock = 0, then delay 240ns
+    SET CLK
 	MOV Rtemp, 24 //240 ns delay
 DELAY2:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY2, Rtemp, 0
 .endm
 
-.macro CLOCK_FIX //add a delay of 10ns between CLOCK_RISING_EDGE AND CLOCK_FALLING_EDGE
+.macro CLOCK_FIX //add a delay of 10ns between CLOCK_FALLING_EDGE AND CLOCK_RISING_EDGE
 //this will allow us to fit TWO instructions between clock pulses, if needed, without skewing the clock
     ADD Rdonothing, Rdonothing, 0
     ADD Rdonothing, Rdonothing, 0
 .endm
 
 .macro CLOCK_WAVE //a full 2MHz wave (500ns)
-    CLOCK_RISING_EDGE
-    CLOCK_FIX 
     CLOCK_FALLING_EDGE
+    CLOCK_FIX 
+    CLOCK_RISING_EDGE
     CLOCK_FIX
 .endm
 
@@ -79,9 +79,9 @@ DELAY3:
 .endm
 
 INIT_PRU0:
-	CLR SH						//SH pin = 0
-	CLR CLK						//CLK pin = 0
-    SET ICG                     //ICG pin = 1
+	SET SH						//SH pin = 0
+	SET CLK						//CLK pin = 0
+    CLR ICG                     //ICG pin = 1
 	MOV Rdonothing, 0			//Register value init.
 	MOV RreadHALF, 0			//Register value init.
 	MOV r0, BRO_RAM				//Point to PRU1 RAM
@@ -108,18 +108,18 @@ MAIN_PRU0:
 
 //Pulse 1:
 //Pulse timing of ICG and SH
-    SET CLK //first pulse start
-    CLR ICG //clear integration gate
-    CLOCK_RISING_EDGE 
+    CLR CLK //first pulse start
+    SET ICG //clear integration gate
     CLOCK_FALLING_EDGE 
+    CLOCK_RISING_EDGE 
     MOV Rdonothing, 9 //For pulses after t2
     MOV Rpixelscntr, 1500  //first pulse end
 
 //Pulse 2:
-    SET CLK
-    SET SH //SH --> HIGH | 500ns after ICG (t2, datasheet)
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
+    CLR CLK
+    CLR SH //SH --> HIGH | 500ns after ICG (t2, datasheet)
+    CLOCK_FALLING_EDGE 
+    CLOCK_RISING_EDGE
     MOV Rshcntr, Rshtimer
     SUB Rshcntr, Rshcntr, 11 //SH timer - 5500ns to keep the signal in phase after ICG goes up
 
@@ -127,27 +127,27 @@ MAIN_PRU0:
     CLOCK_WAVE
 
 //Pulse 4:
-    SET CLK
-    CLR SH //t3 = 1000ns
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
+    CLR CLK
+    SET SH //t3 = 1000ns
+    CLOCK_FALLING_EDGE 
+    CLOCK_RISING_EDGE
     CLOCK_FIX
 
 //Pulses until ICG -> HIGH
 icg_init:
-    CLOCK_RISING_EDGE 
+    CLOCK_FALLING_EDGE 
     CLOCK_FIX
-    CLOCK_FALLING_EDGE
+    CLOCK_RISING_EDGE
     SUB Rdonothing, Rdonothing, 1 
     QBNE icg_init, Rdonothing, 0 //loop until enough clock cycles pass, to change the integration time
 
 icg_init_after:
 //ICG -> HIGH
-    SET CLK
+    CLR CLK
     //At this point, t1=5000
-    SET ICG
-    CLOCK_RISING_EDGE
+    CLR ICG
     CLOCK_FALLING_EDGE
+    CLOCK_RISING_EDGE
     LDI Rdonothing, 30 //30 (+2 outside the loop) SH pulses for trash data
     ADD Rdonothing, Rdonothing, 0
 
@@ -163,28 +163,28 @@ icg_init_after:
 // Produce CLK pulses         SH pin "on" time             Loopy loop            Actual samples
 
 DummyOutFirstLoop:
-    CLOCK_RISING_EDGE   //These outputs do not contain meaningful data 
+    CLOCK_FALLING_EDGE   //These outputs do not contain meaningful data 
     SUB Rshcntr, Rshcntr, 1  //This loop just ignores them while still producing a SH pulse
     SUB Rdonothing, Rdonothing, 1
-    CLOCK_FALLING_EDGE
+    CLOCK_RISING_EDGE
     ADD Rdonothing, Rdonothing, 0 
     QBNE DummyOutFirstLoop, Rshcntr, 0 //loop until it's time for the next SH pulse
 
 //DummyOutFirst_SH Lasts 3 clock cycles
 DummyOutFirst_SH:
-    SET CLK
-    SET SH //t3 start
-    CLOCK_RISING_EDGE
+    CLR CLK
+    CLR SH //t3 start
     CLOCK_FALLING_EDGE
+    CLOCK_RISING_EDGE
     MOV Rshcntr, Rshtimer
     ADD Rdonothing, Rdonothing, 0 
 
     CLOCK_WAVE
 
-    SET CLK
-    CLR SH //t3 = 1000ns
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
+    CLR CLK
+    SET SH //t3 = 1000ns
+    CLOCK_FALLING_EDGE 
+    CLOCK_RISING_EDGE
     ADD Rdonothing, Rdonothing, 0 
     QBNE DummyOutFirstLoop, Rdonothing, 0 //30 (+2 outside the loop) SH pulses for trash data
 
@@ -198,27 +198,27 @@ DummyOutFirst_SH:
 //+--------------+     +-----------------+     +--------------------+     +-----------------+
 
 SamplingLoop:
-    CLOCK_RISING_EDGE   //basically almost the same loop as above
+    CLOCK_FALLING_EDGE   //basically almost the same loop as above
     SUB Rshcntr, Rshcntr, 1  
     SUB Rpixelscntr, Rpixelscntr, 1
-    CLOCK_FALLING_EDGE
+    CLOCK_RISING_EDGE
     ADD Rdonothing, Rdonothing, 0 
     QBNE SamplingLoop, Rshcntr, 0 //loop until it's time for the next SH pulse
 
 SamplingLoop_SH:
-    SET CLK
-    SET SH
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
+    CLR CLK
+    CLR SH
+    CLOCK_FALLING_EDGE 
+    CLOCK_RISING_EDGE
     MOV r31, 32 | 2	 //Interrupt PRU1 in order to Sample.
     MOV Rshcntr, Rshtimer
 
     CLOCK_WAVE
 
-    SET CLK
-    CLR SH //t3 = 1000ns
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
+    CLR CLK
+    SET SH //t3 = 1000ns
+    CLOCK_FALLING_EDGE 
+    CLOCK_RISING_EDGE
     SUB Rpixelscntr, Rpixelscntr, 1
     QBNE, SamplingLoop, Rpixelscntr, 0 //1500 CLK pulses for effective outputs
 
@@ -232,33 +232,33 @@ SamplingLoop_SH:
 //+-----------------+     +-----------------+     +--------------------+     +----------------+
 
 PreDummyOutLast:
-    SET CLK
+    CLR CLK
     MOV Rdonothing, 13 //just to set the timer without skewing the clock
-    CLOCK_RISING_EDGE //1 of 14 dummy outputs with trash data
-    CLOCK_FALLING_EDGE
+    CLOCK_FALLING_EDGE //1 of 14 dummy outputs with trash data
+    CLOCK_RISING_EDGE
 
 DummyOutLastLoop:
-    CLOCK_RISING_EDGE   //These outputs do not contain meaningful data 
+    CLOCK_FALLING_EDGE   //These outputs do not contain meaningful data 
     SUB Rshcntr, Rshcntr, 1  //This loop just ignores them while still producing a SH pulse
     SUB Rdonothing, Rdonothing, 1
-    CLOCK_FALLING_EDGE
+    CLOCK_RISING_EDGE
     ADD Rdonothing, Rdonothing, 0 
     QBNE DummyOutLastLoop, Rshcntr, 0 //loop until it's time for the next SH pulse
 
 DummyOutLast_SH:
-    SET CLK
-    SET SH //t3 start
-    CLOCK_RISING_EDGE
+    CLR CLK
+    CLR SH //t3 start
     CLOCK_FALLING_EDGE
+    CLOCK_RISING_EDGE
     MOV Rshcntr, Rshtimer
     ADD Rdonothing, Rdonothing, 0 
 
     CLOCK_WAVE
 
-    SET CLK
-    CLR SH //t3 = 1000ns
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
+    CLR CLK
+    SET SH //t3 = 1000ns
+    CLOCK_FALLING_EDGE 
+    CLOCK_RISING_EDGE
     ADD Rdonothing, Rdonothing, 0 
     QBNE DummyOutLastLoop, Rdonothing, 0 //13 (+1 outside the loop) SH pulses for trash data
 
@@ -279,9 +279,9 @@ DummyOutLast_SH:
 
 
 PreCheckFrames:
-    CLOCK_RISING_EDGE
+    CLOCK_FALLING_EDGE
     CLOCK_FIX           //Check if there are more frames, without skewing the clock
-    CLR CLK
+    SET CLK
 	MOV Rtemp, 23 //230 ns delay
 DELAY2:
 	SUB Rtemp, Rtemp, 1
