@@ -1,6 +1,7 @@
 //PRU0 Code
 //200MHz Clock | 1 Machine Cycle per instruction | 5ns per instruction | 100% Deterministic PRU.
-
+//Original author:  Stratos Gkagkanis (GH: @StratosGK)
+//Adapted for the S.AP.P.H.O. PDA by: Bantis Asterios (GH: @bandisast)
 
 //                    +------------------------------------------------------------------------------------------------------+
 //                    v                                                                                                      |
@@ -21,13 +22,8 @@
 
 #define Pixels_Offset				0
 #define Frames_Offset				4
-#define Intgr_Stage_Half_Offset		8
-#define Intgr_Stage_Full_Offset		12
-#define Intgr_Stage_Charge_Offset	16
-#define Read_Stage_Half_Offset		20
-#define Read_Stage_Full_Offset		24
-#define ExtraTime_Stage_Offset		28
-#define Handshake_Offset			32
+#define Integr_Time		            8
+#define Handshake_Offset			12
 
 //Registers
 #define Rtemp			r1		//Temp register for any use.
@@ -36,9 +32,9 @@
 #define Rpixels			r4
 #define Rpixelscntr		r5		//Inner Loop Counter (128 Samples from 1 Integration Cycle).
 #define Rframescntr		r6		//Outer Loop Counter (Integration Cycles).
-#define Rshtimer        r7
-#define	Rdonothing		r13
-#define Rshcntr         r14
+#define Rshtimer        r7      //Stores the number that Rshcntr will use to time the SH signal
+#define	Rdonothing		r13     //Used both as a delay() by repeatedly performing x <- x + 0, and as a counter for loops
+#define Rshcntr         r14     //SH timing counter
 
 //GPIO
 #define CLK			r30.t5 //P9_27
@@ -92,12 +88,7 @@ INIT_PRU0:
 	MOV Rtemp, SHARED_RAM		//Point to SHARED_RAM
 	LBBO Rpixels, Rtemp, Pixels_Offset, 4	//Get the pixel count of the PDA.
 	LBBO Rframescntr, Rtemp, Frames_Offset, 4	//Get the integration cycles.
-	LBBO RintgrHALF, Rtemp, Intgr_Stage_Half_Offset, 4
-	LBBO RintgrFULL, Rtemp, Intgr_Stage_Full_Offset, 4	//Get the calculated delay cycles for the integration stage.
-	LBBO RintgrCHARGE, Rtemp, Intgr_Stage_Charge_Offset, 4
-	LBBO RreadHALF, Rtemp, Read_Stage_Half_Offset, 4		//Get the calculated time for read stage.
-	LBBO RreadFULL, Rtemp, Read_Stage_Full_Offset, 4		//Get the calculated time for read stage.
-	LBBO RextraDelay, Rtemp, ExtraTime_Stage_Offset, 4 //Get the calculated cycles for extra time stage.
+    LBBO Rshtimer, Rtemp, intgr_time, 4
 			
 	MOV Rdata, 22522
 	SBBO Rdata, Rtemp, Handshake_Offset, 4
@@ -144,7 +135,7 @@ MAIN_PRU0:
 
 //Pulses until ICG -> HIGH
 icg_init:
-    CLOCK_RISING_EDGE
+    CLOCK_RISING_EDGE 
     CLOCK_FIX
     CLOCK_FALLING_EDGE
     SUB Rdonothing, Rdonothing, 1 
