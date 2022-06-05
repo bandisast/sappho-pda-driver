@@ -22,6 +22,13 @@
 * The copyright owner or contributors be NOT LIABLE *
 * for any damages caused by use of this software.   *
 *                                                   *
+*****************************************************
+
+*****************************************************
+*                                                   *
+* Adapted for the S,AP.P.H.O PDA project by:        *
+* Bantis Asterios (@bandisast), AutomE, 2022        *
+*                                                   *
 ****************************************************/
 
 #include "pda_drivers.h"
