@@ -22,7 +22,15 @@
 * The copyright owner or contributors be NOT LIABLE *
 * for any damages caused by use of this software.   *
 *                                                   *
+*****************************************************
+
+*****************************************************
+*                                                   *
+* Adapted for the S,AP.P.H.O PDA project by:        *
+* Bantis Asterios (@bandisast), AutomE, 2022        *
+*                                                   *
 ****************************************************/
+
 
 #include "pda_drivers.h"
 #include "sample_file.h"
@@ -46,12 +54,7 @@ uint16_t frames;
 double intgr_time;
 double fps;
 
-uint16_t intgr_quarter_delay_instr;
-uint16_t intgr_half_delay_instr;
-uint16_t charge_instr;
-uint16_t read_instr_full;
-uint16_t read_instr_half;
-uint32_t extra_instr;
+uint16_t intgr_delay;
 
 /*************************/
 /* Function Declarations */
@@ -174,12 +177,7 @@ exit:
 
 static uint32_t Delay_Calculation(void)
 {
-	double intgr_pulse_quarter=0;
-	double extra_time=0;
-	double charge_time=0;
-	
-	read_instr_full = (int) ((1/(clkfreq*KHZ_TO_MHZ)) / 2 / INSTRUCTION_DELAY);
-	read_instr_half = read_instr_full / 2;
+	intgr_delay=(int) (1000*intgr_time)/clkfreq;  //Better safe than sorry
 	
 	return NO_ERR;
 }
@@ -226,12 +224,8 @@ static uint32_t Mem_Alloc(void)
 	pru_shared_ram[Frames_Offset] = frames;
 	pru_shared_ram[DDR_Addr_Offset] = ddr_address; 
 	pru_shared_ram[DDR_Size_Offset] = sample_len;
-	pru_shared_ram[Intgr_Stage_Full_Offset] = intgr_half_delay_instr;
-	pru_shared_ram[Intgr_Stage_Half_Offset] = intgr_quarter_delay_instr;
-	pru_shared_ram[Intgr_Stage_Charge_Offset] = charge_instr;
-	pru_shared_ram[Read_Stage_Full_Offset] = read_instr_full;
-	pru_shared_ram[Read_Stage_Half_Offset] = read_instr_half;
-	pru_shared_ram[ExtraTime_Stage_Offset] = extra_instr;
+	pru_shared_ram[Integr_Time] = intgr_delay;
+
 
 	//CLEAR MEMORY
 	ddr_casted = (uint16_t *) ddr_ram_void;

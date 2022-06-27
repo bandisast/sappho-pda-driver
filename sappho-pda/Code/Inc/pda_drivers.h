@@ -5,7 +5,7 @@
 *---------------------------------------------------*
 *                                                   *
 * Copyright (C) 2019, Gkagkanis Efstratios,         *
-*    				all rights reserved.            *
+*    				all rights reserved.*
 *                                                   *
 * Redistribution and use in source and binary forms,*
 * with or without modification, are permitted       *
@@ -21,6 +21,13 @@
 * are DISCLAIMED.                                   *
 * The copyright owner or contributors be NOT LIABLE *
 * for any damages caused by use of this software.   *
+*                                                   *
+*****************************************************
+
+*****************************************************
+*                                                   *
+* Adapted for the S,AP.P.H.O PDA project by:        *
+* Bantis Asterios (@bandisast), AutomE, 2022        *
 *                                                   *
 ****************************************************/
 
@@ -45,10 +52,8 @@
 
 /* PDA */
 #define PIXELS 			(1500)
-#define MIN_CLK_FREQ	(400)
-#define MAX_CLK_FREQ	(4000)
-#define MIN_INTGR_TIME	(0)
-#define MAX_INTGR_TIME	(200000)
+#define MIN_INTGR_TIME	(10)
+#define MAX_INTGR_TIME	(10000)
 
 /* CALCULATION MACROS */
 #define EXTRA_PULSE				(14) // 14 extra pulses are required at the end
@@ -86,13 +91,8 @@ unsigned int (32bit, big endian, 0 ~ 4.294.967.295) */
 /* RAM Offset */
 #define Pixels_Offset				0
 #define Frames_Offset				1
-#define Intgr_Stage_Half_Offset		2
-#define Intgr_Stage_Full_Offset		3
-#define Intgr_Stage_Charge_Offset	4
-#define Read_Stage_Half_Offset		5
-#define Read_Stage_Full_Offset		6
-#define ExtraTime_Stage_Offset		7
-#define Handshake0_Offset			8
-#define Handshake1_Offset			9
-#define DDR_Addr_Offset				10
-#define DDR_Size_Offset				11
+#define Integr_Time              		2
+#define Handshake0_Offset			3
+#define Handshake1_Offset			4
+#define DDR_Addr_Offset				5
+#define DDR_Size_Offset				6
