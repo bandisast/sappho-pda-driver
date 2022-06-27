@@ -54,9 +54,9 @@
 			__overlay__{
 			pru_pru_pins: sappho_pda_pru_pins {
 				pinctrl-single,pins = <
-					0x1ac 0x05	// P9_25 pr1_pru0_pru_r30_7,	MODE5 | OUT_PD | PRU0 - SH
+					0x1ac 0x05  // P9_25 pr1_pru0_pru_r30_7,	MODE5 | OUT_PD | PRU0 - SH
 					0x1a4 0x05  // P9_27 pr1_pru0_pru_r30_5,	MODE5 | OUT_PD | PRU0 - CLK
-                    0x198 0x05  // P9_30 pr1_pru0_pru_r30_9     MODE5 | OUT_PD | PRU0 - ICG
+					0x198 0x05  // P9_30 pr1_pru0_pru_r30_9		MODE5 | OUT_PD | PRU0 - ICG
 					0x084 0x05  // P8_20 pr1_pru1_pru_r30_13,	MODE5 | OUT_PD | PRU1 - DEBUG
 				>;
 				};
