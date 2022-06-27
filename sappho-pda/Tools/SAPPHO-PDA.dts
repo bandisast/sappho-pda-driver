@@ -1,11 +1,16 @@
 /*
+====ORIGINAL AUTHOR===
  *Stratos Gkagkanis
  *Thesis Project:
  *"Fabrication of a photodiode sensor system using the Beaglebone
  *microcomputer for use in non-invasive biomedical sensors."
  *Complete Device Tree Overlay file.
+
+ ====EDITOR====
+ *Bandis Asterios
+ *Thesis: "Scattering measurements with the Beaglebone microcomputer for portable biomedical sensors"
  *Hardware: TSC-ADC Module, PRU0, PRU1.
- *I/O:	AIN0 (AO), GPIO3_19 (CLK), GPIO3_21 (SI), GPIO1_13 (DEBUG)	
+ *I/O:	AIN0 (AO), GPIO3_19 (CLK), GPIO3_21 (SH), GPIO1_13 (DEBUG), GPIO 3_16 (ICH)
  */
  
 /dts-v1/;
@@ -13,7 +18,7 @@
 
 /{
 	compatible = "ti,beaglebone", "ti,beaglebone-black";
-	part-number = "SGK-PDA";
+	part-number = "SAPPHO-PDA";
 	version = "00A0";
 	
 	exclusive-use =
@@ -28,17 +33,16 @@
 		"gpio1_14",
 		
 		//P9 Header
-		"P9.25",	//SI Pin (GPIO3_21 // GPIO 117)
+		"P9.25",	//SH Pin (GPIO3_21 // GPIO 117)
 		"gpio3_21",
-		"P9.27",	//Clock Generator Pin (GPIO3_19  // GPIO 115)
+		"P9.27",	//Clock Generator Pin phiM (GPIO3_19  // GPIO 115)
 		"gpio3_19",
 		"P9.39",	//AIN0 Pin
 		"AIN0",		
 		"P9.12",	//Button (GPIO1_28)
 		"gpio1_28",
-		"P9.14",	//PWM/CLK (GPIO1_18)
-    	"gpio1_18",
-
+        "P9.30"     //ICG Pin (GPIO3_16 // GPIO 112)
+        "gpio3_16"
 
 		//Hardware
 		"pru0",		//PRU0
@@ -48,20 +52,20 @@
 	fragment@0{
 			target = <&am33xx_pinmux>;
 			__overlay__{
-			pru_pru_pins: sgk_pda_pru_pins {
+			pru_pru_pins: sappho_pda_pru_pins {
 				pinctrl-single,pins = <
-					0x1ac 0x05	// P9_25 pr1_pru0_pru_r30_7,	MODE5 | OUT_PD | PRU0 - SI
+					0x1ac 0x05	// P9_25 pr1_pru0_pru_r30_7,	MODE5 | OUT_PD | PRU0 - SH
 					0x1a4 0x05  // P9_27 pr1_pru0_pru_r30_5,	MODE5 | OUT_PD | PRU0 - CLK
+                    0x198 0x05  // P9_30 pr1_pru0_pru_r30_9     MODE5 | OUT_PD | PRU0 - ICG
 					0x084 0x05  // P8_20 pr1_pru1_pru_r30_13,	MODE5 | OUT_PD | PRU1 - DEBUG
 				>;
 				};
-			arm_contr_pins: sgk_pda_arm_pins {
+			arm_contr_pins: sappho_pda_arm_pins {
 				pinctrl-single,pins = <
 					0x078 0x27	// P9_12 gpio1[28],				MODE7 | IN_PD  | ARM - BUTTON
 					0x028 0x07	// P8_14 gpio0[26],				MODE7 | OUT_PD | ARM - LED RED
 					0x03c 0x07	// P8_15 gpio1[15],				MODE7 | OUT_PD | ARM - LED GREEN
 					0x038 0x07	// P8_16 gpio1[14],				MODE7 | OUT_PD | ARM - LED BLUE
-					0x848 0xf	// P9_14 gpio1[18],				MODE6 | OUT    | ARM - PWM
 				>;
 				};
 			};
@@ -73,11 +77,12 @@
          status = "okay";
          pinctrl-names = "default";
          pinctrl-0 = <&pru_pru_pins>;
-		SGK_pins{
-                pin-names = "pin319","pin321","pin131";
+		SAPPHO_pins{
+                pin-names = "pin319","pin321","pin131","pin316";
                 gpios     = <&gpio3 17 0
 							 &gpio3 15 0
 							 &gpio1 63 0
+                             &gpio3 12 0 
 							 >;
                 };
       };
@@ -92,13 +97,12 @@
             status = "okay";
             pinctrl-names = "default";
             pinctrl-0 = <&arm_contr_pins>;
-		SGK_pins{
-                pin-names = "pin128","pin026","pin115","pin114","pin118";
+		SAPPHO_pins{
+                pin-names = "pin128","pin026","pin115","pin114";
                 gpios     = <&gpio1 60 0
 							 &gpio0 26 0
 							 &gpio1 47 0
 							 &gpio1 46 0
-							 &gpio1 18 0
 							 >;
                 };
          };
