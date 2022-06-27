@@ -150,7 +150,7 @@ SamplingLoop:
     CLOCK_FALLING_EDGE 
     CLOCK_RISING_EDGE
     SUB Rpixelscntr, Rpixelscntr, 1
-    QBNE, SamplingLoop, Rpixelscntr, 0 //1500 CLK pulses for effective outputs
+    QBNE SamplingLoop, Rpixelscntr, 0 //1500 CLK pulses for effective outputs
 
 PreDummyOutLast:
     CLR CLK
