@@ -83,12 +83,11 @@ INIT_PRU0:
 	SET CLK						//CLK pin = 0
     CLR ICG                     //ICG pin = 1
 	MOV Rdonothing, 0			//Register value init.
-	MOV RreadHALF, 0			//Register value init.
 	MOV r0, BRO_RAM				//Point to PRU1 RAM
 	MOV Rtemp, SHARED_RAM		//Point to SHARED_RAM
 	LBBO Rpixels, Rtemp, Pixels_Offset, 4	//Get the pixel count of the PDA.
 	LBBO Rframescntr, Rtemp, Frames_Offset, 4	//Get the integration cycles.
-    LBBO Rshtimer, Rtemp, intgr_time, 4
+    LBBO Rshtimer, Rtemp, Integr_Time, 4
 			
 	MOV Rdata, 22522
 	SBBO Rdata, Rtemp, Handshake_Offset, 4
@@ -220,7 +219,7 @@ SamplingLoop_SH:
     CLOCK_FALLING_EDGE 
     CLOCK_RISING_EDGE
     SUB Rpixelscntr, Rpixelscntr, 1
-    QBNE, SamplingLoop, Rpixelscntr, 0 //1500 CLK pulses for effective outputs
+    QBNE SamplingLoop, Rpixelscntr, 0 //1500 CLK pulses for effective outputs
 
 
 //================================LAST DUMMY OUTPUTS================================
@@ -306,4 +305,3 @@ DONE:
 CycleEnd_SH:
     ADD Rdonothing, Rdonothing, 0 //Remaining 2 free instructions after PreCheckFrames2
     JMP PreCheckFrames
-
