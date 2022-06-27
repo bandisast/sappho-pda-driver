@@ -79,7 +79,7 @@ uint32_t Save_Samples(void)
 		fprintf(samples_file, "Number of frames: %u\n", frames);
 		fprintf(samples_file, "Integration time: %.2fus\n", intgr_time);
 		fprintf(samples_file, "Frames per second: %.2f\n", fps);
-		fprintf(samples_file, "CLK signal frequency: %.2fKHz\n", clkfreq);
+		fprintf(samples_file, "CLK signal frequency: 2000KHz";
 		fprintf(samples_file, "==============================\n");
 		
 		for( i = 0; i < (sample_len / 2); i++) {
