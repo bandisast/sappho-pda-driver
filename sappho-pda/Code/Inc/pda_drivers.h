@@ -5,7 +5,7 @@
 *---------------------------------------------------*
 *                                                   *
 * Copyright (C) 2019, Gkagkanis Efstratios,         *
-*    				all rights reserved.            *
+*    				all rights reserved.*
 *                                                   *
 * Redistribution and use in source and binary forms,*
 * with or without modification, are permitted       *
@@ -91,7 +91,7 @@ unsigned int (32bit, big endian, 0 ~ 4.294.967.295) */
 /* RAM Offset */
 #define Pixels_Offset				0
 #define Frames_Offset				1
-#define Integr_Time              	2
+#define Integr_Time              		2
 #define Handshake0_Offset			3
 #define Handshake1_Offset			4
 #define DDR_Addr_Offset				5
