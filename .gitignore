@@ -1,0 +1,6 @@
+
+*.txt
+*.o
+sappho-pda/Code/pda_drivers_exec
+sappho-pda/Code/PRU/PRU0.bin
+sappho-pda/Code/PRU/PRU1.bin
