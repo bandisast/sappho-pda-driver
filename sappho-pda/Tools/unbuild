@@ -1,0 +1,12 @@
+#!/bin/bash
+rm /home/debian/sappho-pda/Code/PRU/PRU0.bin
+rm /home/debian/sappho-pda/Code/PRU/PRU1.bin
+rm /home/debian/sappho-pda/Code/pda_drivers_exec
+rm /home/debian/sappho-pda/Code/Build/gpio.o
+rm /home/debian/sappho-pda/Code/Build/pda_drivers.o
+rm /home/debian/sappho-pda/Code/Build/debug.o
+rm /home/debian/sappho-pda/Code/Build/sample_file.o
+
+
+
+
