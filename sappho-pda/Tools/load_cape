@@ -1,6 +1,5 @@
 #!/bin/bash
 modprobe uio_pruss
-echo SGK-PDA > /sys/devices/platform/bone_capemgr/slots
+echo sappho-pda > /sys/devices/platform/bone_capemgr/slots
 sleep .5
-clear
-echo "uio_pruss and SGK cape enabled."
+echo "uio_pruss and SAPPHO cape enabled."

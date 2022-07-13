@@ -18,7 +18,7 @@
 
 /{
 	compatible = "ti,beaglebone", "ti,beaglebone-black";
-	part-number = "SAPPHO-PDA";
+	part-number = "sappho-pda";
 	version = "00A0";
 	
 	exclusive-use =
@@ -41,8 +41,8 @@
 		"AIN0",		
 		"P9.12",	//Button (GPIO1_28)
 		"gpio1_28",
-        "P9.30"     //ICG Pin (GPIO3_16 // GPIO 112)
-        "gpio3_16"
+        "P9.30",     //ICG Pin (GPIO3_16 // GPIO 112)
+        "gpio3_16",
 
 		//Hardware
 		"pru0",		//PRU0

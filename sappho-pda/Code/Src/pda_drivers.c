@@ -178,7 +178,7 @@ exit:
 static uint32_t Delay_Calculation(void)
 {
 	intgr_delay=(int) (1000*intgr_time)/clkfreq;  //Better safe than sorry
-	
+	//extra_time = (1/fps) - (intgr_time/S_TO_uS) - ((1/(clkfreq * KHZ_TO_MHZ)/2*(PIXELS*2+1))+(1/(clkfreq*KHZ_TO_MHZ)/4*3));  <----- TODO
 	return NO_ERR;
 }
 
