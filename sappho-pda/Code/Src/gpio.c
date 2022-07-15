@@ -22,7 +22,14 @@
 * The copyright owner or contributors be NOT LIABLE *
 * for any damages caused by use of this software.   *
 *                                                   *
+*****************************************************
+*****************************************************
+*                                                   *
+* Adapted for the S,AP.P.H.O PDA project by:        *
+* Bantis Asterios (@bandisast), AutomE, 2022        *
+*                                                   *
 ****************************************************/
+
 
 #include "gpio.h"
 
@@ -152,6 +159,7 @@ exit:
 }
 
 /* Polls the Button until it is pressed*/
+//Temporarily disabled
 uint32_t Button_Wait_To_Press(void)
 {
 	uint32_t result;
@@ -165,6 +173,7 @@ uint32_t Button_Wait_To_Press(void)
 }
 
 /* Polls the Button until it is pressed*/
+//Temporarily disabled
 uint32_t Button_Wait_To_Release(void)
 {
 	uint32_t result;

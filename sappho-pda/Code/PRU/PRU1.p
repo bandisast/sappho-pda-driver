@@ -1,5 +1,7 @@
 //PRU1 Code
 //200MHz Clock | 1 Machine Cycle per instruction | 5ns per instruction | Nondeterministic PRU.
+//Original author:  Stratos Gkagkanis (GH: @StratosGK)
+//Adapted for the S.AP.P.H.O. PDA by: Bantis Asterios (GH: @bandisast) 
 
 .origin 0
 .entrypoint INIT_PRU1
@@ -24,15 +26,15 @@
 #define MY_RAM				0x00000000	//Current PRU RAM Address
 #define BRO_RAM				0x00002000	//Others PRU RAM Address
 #define SHARED_RAM			0x00000100	//Shared RAM Address
-#define Handshake_Offset	36
-#define DDR_Addr_Offset		40
-#define DDR_Size_Offset		44
+#define Handshake_Offset	16
+#define DDR_Addr_Offset		20
+#define DDR_Size_Offset		24
 
 //Registers
 #define Rtemp			r1		//Temp register for any use.
 #define Rdata			r2		//
 #define RramPointer		r3		//Shared RAM pointer.
-#define Rpixelscntr		r4		//Inner Loop Counter (128 Samples from 1 Integration Cycle)
+#define Rpixelscntr		r4		//Inner Loop Counter (1500 Samples from 1 Integration Cycle)
 #define Rframescntr		r5		//Outer Loop Counter (Integration Cycles)
 #define Rddr			r6
 #define Rbytes2write	r7
@@ -62,7 +64,7 @@
 .endm
 
 .macro SlewRateDelay	
-	LDI Rtemp, 15			//2 * 5ns * Rtemp + 5 = Delay in ns.
+	LDI Rtemp, 9			//2 * 5ns * Rtemp + 5 = Delay in ns.
 	delay1:
 	SUB Rtemp, Rtemp, 1
 	QBNE delay1, Rtemp, 0
