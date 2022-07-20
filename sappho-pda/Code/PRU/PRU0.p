@@ -3,14 +3,6 @@
 //Original author:  Stratos Gkagkanis (GH: @StratosGK)
 //Adapted for the S.AP.P.H.O. PDA by: Bantis Asterios (GH: @bandisast)
 
-//                    +------------------------------------------------------------------------------------------------------+
-//                    v                                                                                                      |
-//+-----------+     +-----------+     +----------------+     +-------------+     +---------------+     +-------------+     +-----------------+     +------+
-//| INIT_PRU0 | --> | MAIN_PRU0 | --> | icg_init loops | --> | DummyLoops1 | --> | SamplingLoops | --> | DummyLoops2 | --> | FrameCheckLoops | --> | DONE |
-//+-----------+     +-----------+     +----------------+     +-------------+     +---------------+     +-------------+     +-----------------+     +------+
-//                                      ^            |         ^         |         ^           |         ^         |         ^             |
-//                                      +------------+         +---------+         +-----------+         +---------+         +-------------+
-
 .origin 0
 .entrypoint INIT_PRU0
 //Constants
@@ -24,6 +16,7 @@
 #define Frames_Offset				4
 #define Integr_Time		            8
 #define Handshake_Offset			12
+#define ExtraTime_Offset            16
 
 //Registers
 #define Rtemp			r1		//Temp register for any use.
@@ -33,8 +26,10 @@
 #define Rpixelscntr		r5		//Inner Loop Counter (128 Samples from 1 Integration Cycle).
 #define Rframescntr		r6		//Outer Loop Counter (Integration Cycles).
 #define Rshtimer        r7      //Stores the number that Rshcntr will use to time the SH signal
-#define Rrandom         r8
-#define	Rdonothing		r13     //Used both as a delay() by repeatedly performing x <- x + 0, and as a counter for loops
+#define Rrandom         r8      //Usad as a counter for pseudo-pixel loops (dummy outputs)
+#define Rextratime      r9      //stores the number of clock cycles for the extra time between frames
+#define Rextratimecntr  r10     //counts the number of clock cycles that passed during the extra time stage
+#define	Rdonothing		r13     //Used as a delay() by repeatedly performing x <- x + 0
 #define Rshcntr         r14     //SH timing counter
 
 //GPIO
@@ -42,18 +37,18 @@
 #define	SH			r30.t7 //P9_25
 #define ICG         r30.t2 //P9_30
 
-//CLOCK: 2MHz <-> 500ns
-.macro CLOCK_RISING_EDGE //clock = 1, then delay 240ns
+//CLOCK: 1MHz <-> 1000ns
+.macro CLOCK_RISING_EDGE //clock = 1, then delay 490ns
     SET CLK
-	MOV Rtemp, 24 //((24-1) * 2 + 2)(instructions) * 5 (ns/instruction) = 240ns delay
+	MOV Rtemp, 49 //((49-1) * 2 + 2)(instructions) * 5 (ns/instruction) = 490ns delay
 DELAY1:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY1, Rtemp, 0
 .endm
 
-.macro CLOCK_FALLING_EDGE //clock = 0, then delay 240ns
+.macro CLOCK_FALLING_EDGE //clock = 0, then delay 490ns
     CLR CLK
-	MOV Rtemp, 24 //240 ns delay
+	MOV Rtemp, 49 //490 ns delay
 DELAY2:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY2, Rtemp, 0
@@ -65,16 +60,24 @@ DELAY2:
     ADD Rdonothing, Rdonothing, 0
 .endm
 
-.macro CLOCK_WAVE //a full 2MHz wave (500ns)
+.macro CLOCK_FALLING_EDGE_SH //clock = 0, then delay 480ns
+    CLR CLK
+	MOV Rtemp, 48 //480 ns delay 
+DELAY3: 
+	SUB Rtemp, Rtemp, 1 //This allows us to fit 4 instructions afterwards, rather than 2
+	QBNE DELAY3, Rtemp, 0
+.endm
+
+.macro CLOCK_WAVE //a full 1MHz wave (1000ns)
     CLOCK_RISING_EDGE
     CLOCK_FIX 
     CLOCK_FALLING_EDGE
     CLOCK_FIX
 .endm
 
-.macro CLOCK_NO_OP_QUARTER_DELAY //120ns delay, no operation
-	MOV Rtemp, 12 //120 ns delay
-DELAY3:
+.macro CLOCK_NO_OP_QUARTER_DELAY //240ns delay, no operation
+	MOV Rtemp, 24 //240 ns delay
+DELAY4:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY3, Rtemp, 0
 .endm
@@ -87,225 +90,191 @@ INIT_PRU0:
 	MOV r0, BRO_RAM				//Point to PRU1 RAM
 	MOV Rtemp, SHARED_RAM		//Point to SHARED_RAM
 	LBBO Rpixels, Rtemp, Pixels_Offset, 4	//Get the pixel count of the PDA.
-	LBBO Rframescntr, Rtemp, Frames_Offset, 4	//Get the integration cycles.
-    LBBO Rshtimer, Rtemp, Integr_Time, 4
-			
+	LBBO Rframescntr, Rtemp, Frames_Offset, 4	//Get the frame count
+    LBBO Rshtimer, Rtemp, Integr_Time, 4 //Get how many clock cycles the period of the SH pulse will last
+    LBBO Rextratime, Rtemp, ExtraTime_Offset, 4 //Get the extra time between each frame
+
 	MOV Rdata, 22522
 	SBBO Rdata, Rtemp, Handshake_Offset, 4
 HANDSHAKE:
 	LBBO Rdata, Rtemp, Handshake_Offset, 4		//ARM HANDSHAKE
 	QBNE HANDSHAKE, Rdata, 111					//Stay here until Rdata = 111.
 	
-//CLOCK_WAVE //a few clock pulses for initiation
-//CLOCK_WAVE
-//CLOCK_WAVE
-//CLOCK_WAVE
-//CLOCK_WAVE
+CLOCK_WAVE //a few clock pulses for initiation
+CLOCK_WAVE
+CLOCK_WAVE
+CLOCK_WAVE
+CLOCK_WAVE
 	//MAIN CODE PRU0
 
  
+    	//MAIN CODE PRU0
 MAIN_PRU0:
-//================PDA INITIATION================
-//First pulses | ICG -> LOW | SH -> HIGH
-
-//Pulse 1:
-//Pulse timing of ICG and SH
-    SET CLK //first pulse start
-    CLR ICG //clear integration gate
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE 
-    MOV Rrandom, 9 //For pulses after t2
-    MOV Rpixelscntr, 1500  //first pulse end
-
-//Pulse 2:
+//Initial SH / ICG pulses stage
     SET CLK
-    SET SH //SH --> HIGH | 500ns after ICG (t2, datasheet)
-    CLOCK_RISING_EDGE 
+    CLR ICG //ICG start 
+    CLOCK_RISING_EDGE
     CLOCK_FALLING_EDGE
-    MOV Rshcntr, Rshtimer
-    SUB Rshcntr, Rshcntr, 11 //SH timer - 5500ns to keep the signal in phase after ICG goes up
+    SET SH //SH t3 START
+    MOV Rextratimecntr, Rextratime //Reset extra time counter
 
-//Pulse 3:
+    CLOCK_RISING_EDGE
+    LSR Rextratimecntr, Rextratimecntr, 1  //divide Rextratimecntr by 2, because the loops last 2 CLK pulses
+    CLOCK_FALLING_EDGE
+    CLR SH //SH t3 END -> 1000ns
+    MOV Rrandom, 32  //32 dummy outputs in the beginning
+
     CLOCK_WAVE
-
-//Pulse 4:
-    SET CLK
-    CLR SH //t3 = 1000ns
-    CLOCK_RISING_EDGE 
+    CLOCK_WAVE
+    CLOCK_WAVE
+    SET CLK   
+    SET ICG //ICG STOP (t1+t3) | t1 ~ 3015ns
+    CLOCK_RISING_EDGE
     CLOCK_FALLING_EDGE
     CLOCK_FIX
-
-//Pulses until ICG -> HIGH
-icg_init:
-    CLOCK_RISING_EDGE 
-    CLOCK_FIX
-    CLOCK_FALLING_EDGE
-    SUB Rrandom, Rrandom, 1 
-    QBNE icg_init, Rrandom, 0 //loop until enough clock cycles pass, to change the integration time
-
-icg_init_after:
-//ICG -> HIGH
-    SET CLK
-    //At this point, t1=5000
-    SET ICG
+//ENTER SAMPLING STAGE
     CLOCK_RISING_EDGE
+    MOV Rpixelscntr, Rpixels
+    MOV Rshtimer, RintegrTime
     CLOCK_FALLING_EDGE
-    LDI Rrandom, 30 //30 (+2 outside the loop) SH pulses for trash data
-    ADD Rdonothing, Rdonothing, 0
+	LSR Rshtimer, Rshtimer, 1 //divide integration time by 2 because the sampling loops have two clock cycles
+    SUB Rshcntr, Rshcntr, 3 //remove 3*2 clock cycles from SH counter
 
-//================FIRST DUMMY OUTPUTS================
-
-
-//  +--------------------------------------------------+
-//  v                                                  | (cur. pixel <=32)
-//+-------------------+     +------------------+     +--------------------+     +--------------+
-//| DummyOutFirstLoop | --> | DummyOutFirst_SH | --> | Check pixel number | --> | SamplingLoop |
-//+-------------------+     +------------------+     +--------------------+     +--------------+
-
-// Produce CLK pulses         SH pin "on" time             Loopy loop            Actual samples
-
-DummyOutFirstLoop:
-    CLOCK_RISING_EDGE   //These outputs do not contain meaningful data 
-    SUB Rshcntr, Rshcntr, 1  //This loop just ignores them while still producing a SH pulse
-    ADD Rdonothing, Rdonothing, 0 
-    CLOCK_FALLING_EDGE
-    ADD Rdonothing, Rdonothing, 0 
-    QBNE DummyOutFirstLoop, Rshcntr, 0 //loop until it's time for the next SH pulse
-
-//DummyOutFirst_SH Lasts 3 clock cycles
-DummyOutFirst_SH:
-    SET CLK
-    SET SH //t3 start
+//Loop between DummyOutStart1 and DummyOutStart2 until it's time for an SH pulse. If it's time, for an SH pulse, go to DummyOutSH.
+DummyOutStart1:
     CLOCK_RISING_EDGE
-    CLOCK_FALLING_EDGE
-    MOV Rshcntr, Rshtimer
-    SUB Rrandom, Rrandom, 1
-
-    CLOCK_WAVE
-
-    SET CLK
-    CLR SH //t3 = 1000ns
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
-    ADD Rdonothing, Rdonothing, 0 
-    QBNE DummyOutFirstLoop, Rrandom, 0 //30 (+2 outside the loop) SH pulses for trash data
-
-
-//================SAMPLING================
-
-//  +--------------------------------------------+
-//  v                                            | (cur. pixel >32 && <=1500+32)
-//+--------------+     +-----------------+     +--------------------+     +-----------------+
-//| SamplingLoop | --> | SamplingLoop_SH | --> | Check pixel number | --> | PreDummyOutLast |
-//+--------------+     +-----------------+     +--------------------+     +-----------------+
-
-SamplingLoop:
-    CLOCK_RISING_EDGE   //basically almost the same loop as above
-    SUB Rshcntr, Rshcntr, 1  
-    ADD Rdonothing, Rdonothing, 0 
-    CLOCK_FALLING_EDGE
-    ADD Rdonothing, Rdonothing, 0 
-    QBNE SamplingLoop, Rshcntr, 0 //loop until it's time for the next SH pulse
-
-SamplingLoop_SH:
-    SET CLK
-    SET SH
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
-    MOV r31, 32 | 2	 //Interrupt PRU1 in order to Sample.
-    MOV Rshcntr, Rshtimer
-
-    CLOCK_WAVE
-
-    SET CLK
-    CLR SH //t3 = 1000ns
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
-    SUB Rpixelscntr, Rpixelscntr, 1
-    QBNE SamplingLoop, Rpixelscntr, 0 //1500 CLK pulses for effective outputs
-
-
-//================================LAST DUMMY OUTPUTS================================
-
-//  +-----------------------------------------------+
-//  v                                               |
-//+-----------------+     +-----------------+     +--------------------+     +----------------+
-//| PreDummyOutLast | --> | DummyOutLast_SH | --> | Check pixel number | --> | PreCheckFrames |
-//+-----------------+     +-----------------+     +--------------------+     +----------------+
-
-PreDummyOutLast:
-    SET CLK
-    MOV Rrandom, 13 //just to set the timer without skewing the clock
-    CLOCK_RISING_EDGE //1 of 14 dummy outputs with trash data
-    CLOCK_FALLING_EDGE
-
-DummyOutLastLoop:
-    CLOCK_RISING_EDGE   //These outputs do not contain meaningful data 
-    SUB Rshcntr, Rshcntr, 1  //This loop just ignores them while still producing a SH pulse
-    ADD Rdonothing, Rdonothing, 0 
-    CLOCK_FALLING_EDGE
-    ADD Rdonothing, Rdonothing, 0 
-    QBNE DummyOutLastLoop, Rshcntr, 0 //loop until it's time for the next SH pulse
-
-DummyOutLast_SH:
-    SET CLK
-    SET SH //t3 start
-    CLOCK_RISING_EDGE
-    CLOCK_FALLING_EDGE
-    MOV Rshcntr, Rshtimer
-    SUB Rrandom, Rrandom, 1
-
-    CLOCK_WAVE
-
-    SET CLK
-    CLR SH //t3 = 1000ns
-    CLOCK_RISING_EDGE 
-    CLOCK_FALLING_EDGE
-    ADD Rdonothing, Rdonothing, 0 
-    QBNE DummyOutLastLoop, Rrandom, 0 //13 (+1 outside the loop) SH pulses for trash data
-
-
-//================================WAIT ONE FULL SH SIGNAL PERIOD UNTIL FRAME CHECK================================
-
-//   +----------------------+
-//   v                      |
-//  +----------------+     +-------------------------------------------------+     +-------------+     +------+
-//  | PreCheckFrames | --> | PreCheckFrames2 (and CycleEnd_SH for same T_sh) | --> | CheckFrames | --> | DONE |
-//  +----------------+     +-------------------------------------------------+     +-------------+     +------+
-//                                                                                      |
-//                                                                                      |
-//                                                                                      v
-//                                                                                 +-------------+
-//                                                                                 |  MAIN_PRU0  |
-//                                                                                 +-------------+
-
-
-PreCheckFrames:
-    CLOCK_RISING_EDGE
-    CLOCK_FIX           //Check if there are more frames, without skewing the clock
-    CLR CLK
-	MOV Rtemp, 23 //230 ns delay
-DELAY4:
-	SUB Rtemp, Rtemp, 1
-	QBNE DELAY4, Rtemp, 0 //room for 4 instructions after this part
-
-PreCheckFrames2:
     SUB Rshcntr, Rshcntr, 1
-    QBNE CycleEnd_SH, Rshcntr, 0 //jump to CycleEnd_SH every loop, until it's time for SH
+    QBEQ DummyOutSH, Rshcntr, 0
+    CLOCK_FALLING_EDGE
+    CLOCK_FIX
+    CLOCK_RISING_EDGE
+    CLOCK_FIX
 
+DummyOutStart2:
+    CLOCK_FALLING_EDGE_SH
+    ADD Rdonothing, Rdonothing, 0
+    SUB Rrandom, Rrandom, 1 //32 times for 32 dummy outputs
+    CLR SH //keep SH low. Yes, I am overcomplicating the program for the sake of not being even 5ns off clock, m'kay. 
+           //With so many pixels + pseudopixels in total, we could end up being even 100ns off by the time a frame ends!
+    QBNE DummyOutStart1, Rrandom, 0
+
+SamplingLoop1: 
+    CLOCK_RISING_EDGE //almost the same loops as above, but with sampling enabled
+    SUB Rshcntr, Rshcntr, 1
+    QBEQ SamplingLoopSH, Rshcntr, 0
+    CLOCK_FALLING_EDGE
+    CLOCK_FIX 
+    SET CLK //we sample every two CLK pulses
+    CLOCK_NO_OP_QUARTER_DELAY
+    MOV r31, 32 | 2	//interrupt PRU1 -> Request interrupt
+    CLOCK_NO_OP_QUARTER_DELAY
+    MOV Rrandom, 14 //Load the value of 14 pseudopixels for the DummyOutLast loops. Yes, this will run 1500 times, but there is no room to put it elsewhere without skewing the clock
+    CLOCK_FIX 
+
+SamplingLoop2:
+    CLOCK_FALLING_EDGE_SH //similarly to DummyOutStart2, 1500 loops for 1500 pixels
+    ADD Rdonothing, Rdonothing, 0
+    SUB Rpixelscntr, Rpixelscntr, 1
+    CLR SH
+    QBNE SamplingLoop1, Rpixelscntr, 0
+
+DummyOutLast1:
+    CLOCK_RISING_EDGE
+    SUB Rshcntr, Rshcntr, 1
+    QBEQ DummyLastSH, Rshcntr, 0
+    CLOCK_FALLING_EDGE
+    CLOCK_FIX
+    CLOCK_RISING_EDGE
+    CLOCK_FIX
+
+DummyOutLast2:
+    CLOCK_FALLING_EDGE_SH
+    ADD Rdonothing, Rdonothing, 0
+    SUB Rrandom, Rrandom, 1 //32 times for 32 dummy outputs
+    CLR SH //keep SH low. Yes, I am overcomplicating the program for the sake of not being even 5ns off clock, m'kay. 
+           //With so many pixels + pseudopixels in total, we could end up being even 100ns off by the time a frame ends!
+    QBNE DummyOutLast1, Rrandom, 0
+
+WaitForNextFrame:
+    CLOCK_RISING_EDGE
+    SUB Rshcntr, Rshcntr, 1
+    QBEQ WaitStageSH, Rshcntr, 0
+    CLOCK_FALLING_EDGE
+    CLOCK_FIX
+    CLOCK_RISING_EDGE
+    CLOCK_FIX
+
+WaitForNextFrame2:
+    CLR CLK
+	MOV Rtemp, 47 //470 ns delay 
+    DELAYFin: 
+	    SUB Rtemp, Rtemp, 1 //This allows us to fit 4 instructions afterwards, rather than 2
+	    QBNE DELAYFin, Rtemp, 0
+
+    ADD Rdonothing, Rdonothing, 0
+    SUB Rextratimecntr, Rextratimecntr, 1 //32 times for 32 dummy outputs
+    QBEQ CheckFrames, Rextratimecntr, 0 //skip the next 3 instructions if it's time for the next frame (to prevent clock skew) and jump to CheckFrames
+    ADD Rdonothing, Rdonothing, 0
+    CLR SH //keep SH low. Yes, I am overcomplicating the program for the sake of not being even 5ns off clock, m'kay. 
+           //With so many pixels + pseudopixels in total, we could end up being even 100ns off by the time a frame ends!
+    QBNE DummyOutLast1, Rrandom, 0
 
 //================================CHECK FRAMES================================
 CheckFrames:
     SUB Rframescntr, Rframescntr, 1	//Decrease outer counter.
+    CLR SH
     QBNE MAIN_PRU0, Rframescntr, 0	//If outer counter != 0 there is at least one more integration cycle so start again.
-
+    
 DONE:
 	MOV Rdata, 55255				//END_CODE
 	MOV Rtemp, SHARED_RAM
 	SBBO Rdata, Rtemp, Handshake_Offset, 4
 	HALT		//CPU stops working.
 
-CycleEnd_SH:
-    ADD Rdonothing, Rdonothing, 0 //Remaining 2 free instructions after PreCheckFrames2
-    JMP PreCheckFrames
+DummyOutSH:
+    CLOCK_FALLING_EDGE_SH
+    ADD Rdonothing, Rdonothing, 0
+    MOV Rshcntr, Rshtimer   //reset SH counter
+    SET SH
+    LSR Rshcntr, Rshcntr, 1 //divide SH counter by 2
 
+    CLOCK_RISING_EDGE 
+    ADD Rdonothing, Rdonothing, 0
+    JMP DummyOutStart2 //500ns since SH
+    
+
+SamplingLoopSH:
+    CLOCK_FALLING_EDGE_SH
+    ADD Rdonothing, Rdonothing, 0
+    MOV Rshcntr, Rshtimer   //reset SH counter
+    SET SH
+    LSR Rshcntr, Rshcntr, 1 //divide SH counter by 2
+
+    SET CLK //we sample every two CLK pulses
+    CLOCK_NO_OP_QUARTER_DELAY
+    MOV r31, 32 | 2	//interrupt PRU1 -> Request interrupt
+    CLOCK_NO_OP_QUARTER_DELAY
+    CLOCK_FIX //495ns since SET CLK
+    JMP SamplingLoop2
+
+DummyLastSH:
+    CLOCK_FALLING_EDGE_SH
+    ADD Rdonothing, Rdonothing, 0
+    MOV Rshcntr, Rshtimer   //reset SH counter
+    SET SH
+    LSR Rshcntr, Rshcntr, 1 //divide SH counter by 2
+
+    CLOCK_RISING_EDGE 
+    ADD Rdonothing, Rdonothing, 0
+    JMP DummyOutLast2 //500ns since SH
+
+WaitStageSH:
+    CLOCK_FALLING_EDGE_SH
+    ADD Rdonothing, Rdonothing, 0
+    MOV Rshcntr, Rshtimer   //reset SH counter
+    SET SH
+    LSR Rshcntr, Rshcntr, 1 //divide SH counter by 2
+
+    CLOCK_RISING_EDGE 
+    ADD Rdonothing, Rdonothing, 0
+    JMP WaitForNextFrame2 //500ns since SH

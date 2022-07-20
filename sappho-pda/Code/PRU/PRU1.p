@@ -26,9 +26,9 @@
 #define MY_RAM				0x00000000	//Current PRU RAM Address
 #define BRO_RAM				0x00002000	//Others PRU RAM Address
 #define SHARED_RAM			0x00000100	//Shared RAM Address
-#define Handshake_Offset	16
-#define DDR_Addr_Offset		20
-#define DDR_Size_Offset		24
+#define Handshake_Offset	20
+#define DDR_Addr_Offset		24
+#define DDR_Size_Offset		28
 
 //Registers
 #define Rtemp			r1		//Temp register for any use.
@@ -58,15 +58,15 @@
 
 .macro SHORTdelay	
 	LDI Rtemp, 40			//1 = 10ns
-	delay0:
+	delay0:					//405ns delay
 	SUB Rtemp, Rtemp, 1
 	QBNE delay0, Rtemp, 0
 .endm
 
 .macro SlewRateDelay	
 	LDI Rtemp, 9			//2 * 5ns * Rtemp + 5 = Delay in ns.
-	delay1:
-	SUB Rtemp, Rtemp, 1
+	delay1:					//95ns delay
+	SUB Rtemp, Rtemp, 1		
 	QBNE delay1, Rtemp, 0
 .endm
 

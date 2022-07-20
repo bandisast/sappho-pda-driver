@@ -60,7 +60,6 @@
 #define EXTRA_WAIT_B4_NEXT_SI	(10) // 20us exta time between integrations
 #define uS_TO_S					(0.000001) // conversion from us to s
 #define S_TO_uS					(1000000)
-#define INTGR_PULSE_QUARTER		((PIXELS+EXTRA_PULSE)*4+1) // Duration of a quarter of a pulse for integration
 #define INSTRUCTION_DELAY		(0.00000001) // Minimum delay time for a delay loop
 #define FIRST_32_PULSES			(32) // The first 32 setup clock pulses
 #define KHZ_TO_MHZ				(1000)
@@ -91,8 +90,9 @@ unsigned int (32bit, big endian, 0 ~ 4.294.967.295) */
 /* RAM Offset */
 #define Pixels_Offset				0
 #define Frames_Offset				1
-#define Integr_Time              		2
+#define Integr_Time              	2
 #define Handshake0_Offset			3
-#define Handshake1_Offset			4
-#define DDR_Addr_Offset				5
-#define DDR_Size_Offset				6
+#define ExtraTime_Offset            4
+#define Handshake1_Offset			5
+#define DDR_Addr_Offset				6
+#define DDR_Size_Offset				7
