@@ -55,6 +55,8 @@ double intgr_time;
 double fps;
 
 uint16_t intgr_delay;
+uint32_t extra_time;
+uint16_t prog_total_cycles = 3099; //number of CLK pulses/frame, without the extra time delay (2 * 1500 pixels + 2 * 32 dummy outputs + 2* 14 dummy outputs + 7 CLK pulses for the ICG stage)
 
 /*************************/
 /* Function Declarations */
@@ -153,15 +155,15 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 	
 	if (*argc != ARGUMENTS_NUM) {
 		printf("Incorrect arguments.\n");
-		printf("Example: ./pda_drivers 10 120 50\n");
+		printf("Example: ./pda_drivers_exec 10 120 50\n");
 		printf("First argument: Number of Frames \n");
-		printf("Second argument: Integration Time in us. Min = 33.75us, Max = 22020us \n");
-		printf("Third argument: Frames per second (fps). \n");
+		printf("Second argument: Integration Time in us. Min = 33.75 us, Max = 22020 us \n");
+		printf("Third argument: Frames per second (fps). Min = 1 Hz. Max = 322 Hz \n");
 		printf("Please try again.\n");
 		goto exit;
 	}
 	
-	clkfreq = 2000;
+	clkfreq = 1000;
 	frames = abs(atoi(argv[1]));
 	intgr_time = abs(atof(argv[2]));
 	fps = abs(atof(argv[3]));
@@ -171,14 +173,20 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 	}
 	
 	result = NO_ERR;
+
+	if (fps >= (int) (S_TO_uS/prog_total_cycles) || fps < 1)
+	{
+		fps = (int) (S_TO_uS/prog_total_cycles)
+		printf("[Warning]: Invalid fps argument; Fps automatically set to its maximum value.\n");
+	}
 exit:
 	return result;
 }
 
 static uint32_t Delay_Calculation(void)
 {
-	intgr_delay=(int) (1000*intgr_time)/clkfreq;  //Better safe than sorry
-	//extra_time = (1/fps) - (intgr_time/S_TO_uS) - ((1/(clkfreq * KHZ_TO_MHZ)/2*(PIXELS*2+1))+(1/(clkfreq*KHZ_TO_MHZ)/4*3));  <----- TODO
+	intgr_delay=(int) (1000*intgr_time)/clkfreq;  //Kinda useless when your clock is 1000 KHz but keeping this here in case the clock frequency changes again
+	extra_time = S_TO_uS/fps - (KHZ_TO_MHZ*prog_total_cycles)/clkfreq
 	return NO_ERR;
 }
 
@@ -222,6 +230,7 @@ static uint32_t Mem_Alloc(void)
 	
 	pru_shared_ram[Pixels_Offset] = PIXELS;
 	pru_shared_ram[Frames_Offset] = frames;
+	pru_shared_ram[ExtraTime_Offset] = extra_time
 	pru_shared_ram[DDR_Addr_Offset] = ddr_address; 
 	pru_shared_ram[DDR_Size_Offset] = sample_len;
 	pru_shared_ram[Integr_Time] = intgr_delay;
