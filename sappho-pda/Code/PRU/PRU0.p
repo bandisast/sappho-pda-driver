@@ -35,7 +35,7 @@
 //CLOCK: 2MHz <-> 500ns
 .macro CLOCK_RISING_EDGE //clock = 1, then delay 240ns
     SET CLK
-	MOV Rtemp, 24 //(24 * 2 + 2)(instructions) * 5 (ns/instruction) = 240ns delay
+	MOV Rtemp, 48 //(24 * 2 + 2)(instructions) * 5 (ns/instruction) = 240ns delay
 DELAY1:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY1, Rtemp, 0
@@ -43,7 +43,7 @@ DELAY1:
 
 .macro CLOCK_FALLING_EDGE //clock = 0, then delay 240ns
     CLR CLK
-	MOV Rtemp, 24 //240 ns delay
+	MOV Rtemp, 48 //240 ns delay
 DELAY2:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY2, Rtemp, 0
@@ -51,10 +51,12 @@ DELAY2:
 
 .macro QuarterClockDelay //120ns
     ADD Rdonothing, Rdonothing, 0
-    MOV Rtemp, 12
+    MOV Rtemp, 24
 DELAY3:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY3, Rtemp, 0
+
+.endm 
 
 .macro CLOCK_FIX //add a delay of 10ns between CLOCK_FALLING_EDGE AND CLOCK_RISING_EDGE
 //this will allow us to fit TWO instructions between clock pulses, if needed, without skewing the clock
@@ -75,12 +77,12 @@ INIT_PRU0:
 	CLR CLK						//CLK pin = 0
     SET ICG                     //ICG pin = 1
 	MOV Rdonothing, 0			//Register value init.
-	MOV RreadHALF, 0			//Register value init.
+
 	MOV r0, BRO_RAM				//Point to PRU1 RAM
 	MOV Rtemp, SHARED_RAM		//Point to SHARED_RAM
 	LBBO Rpixels, Rtemp, Pixels_Offset, 4	//Get the pixel count of the PDA.
 	LBBO Rframescntr, Rtemp, Frames_Offset, 4	//Get the integration cycles.
-    LBBO RintegrTime, Rtemp, Integr_Time	//Get the calculated time for read stage.
+    	LBBO RintegrTime, Rtemp, Integr_Time, 4	//Get the calculated time for read stage.
 			
 	MOV Rdata, 22522
 	SBBO Rdata, Rtemp, Handshake_Offset, 4
@@ -168,8 +170,8 @@ DummyOutLast:
     SUB Rshtimer, Rshtimer, 1 //remove 2 clock cycles from integration time
     QBNE DummyOutLast, Rrandom, 0
 
-IntegrationWait: //wait until t=integr_time - 2 CLK cycles
-    CLOCK_WAVE
+IntegrationWait: 
+    CLOCK_WAVE //wait until t=integr_time - 2 CLK cycles
     CLOCK_RISING_EDGE
     CLOCK_FIX
     CLOCK_FALLING_EDGE
@@ -188,7 +190,6 @@ DONE:
 	MOV Rtemp, SHARED_RAM
 	SBBO Rdata, Rtemp, Handshake_Offset, 4
 	HALT		//CPU stops working.
-
 
 
 

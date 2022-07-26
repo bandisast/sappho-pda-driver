@@ -152,10 +152,9 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 	
 	if (*argc != ARGUMENTS_NUM) {
 		printf("Incorrect arguments.\n");
-		printf("Example: ./pda_drivers 10 120 50\n");
+		printf("Example: ./pda_drivers 10 120\n");
 		printf("First argument: Number of Frames \n");
 		printf("Second argument: Integration Time in us. Min = 33.75us, Max = 22020us \n");
-		printf("Third argument: Frames per second (fps). \n");
 		printf("Please try again.\n");
 		goto exit;
 	}

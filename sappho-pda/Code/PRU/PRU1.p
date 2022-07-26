@@ -26,9 +26,9 @@
 #define MY_RAM				0x00000000	//Current PRU RAM Address
 #define BRO_RAM				0x00002000	//Others PRU RAM Address
 #define SHARED_RAM			0x00000100	//Shared RAM Address
-#define Handshake_Offset	16
-#define DDR_Addr_Offset		20
-#define DDR_Size_Offset		24
+#define DDR_Addr_Offset		16
+#define DDR_Size_Offset		20
+#define Handshake_Offset	24
 
 //Registers
 #define Rtemp			r1		//Temp register for any use.

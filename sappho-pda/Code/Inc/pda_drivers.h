@@ -43,7 +43,7 @@
 /***************/
 /* Definitions */
 /***************/
-#define ARGUMENTS_NUM (4)
+#define ARGUMENTS_NUM (3)
 #define PRU0 0
 #define PRU1 1
 
@@ -52,7 +52,7 @@
 /* PDA */
 #define PIXELS 			(1500)
 #define MIN_INTGR_TIME	(1600)
-#define MAX_INTGR_TIME	(10000)
+#define MAX_INTGR_TIME	(22000)
 
 /* CALCULATION MACROS */
 #define EXTRA_PULSE				(14) // 14 extra pulses are required at the end
@@ -92,23 +92,6 @@ unsigned int (32bit, big endian, 0 ~ 4.294.967.295) */
 #define Frames_Offset				1
 #define Integr_Time              	2
 #define Handshake0_Offset			3
-#define Handshake1_Offset			4
-#define DDR_Addr_Offset				5
-#define DDR_Size_Offset				6
-Footer
-© 2022 GitHub, Inc.
-Footer navigation
-
-    Terms
-    Privacy
-    Security
-    Status
-    Docs
-    Contact GitHub
-    Pricing
-    API
-    Training
-    Blog
-    About
-
-You have no unread notifications
+#define DDR_Addr_Offset				4
+#define DDR_Size_Offset				5
+#define Handshake1_Offset			6
