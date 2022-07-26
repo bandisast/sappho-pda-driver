@@ -79,7 +79,7 @@ DELAY3:
 	MOV Rtemp, 24 //240 ns delay
 DELAY4:
 	SUB Rtemp, Rtemp, 1
-	QBNE DELAY3, Rtemp, 0
+	QBNE DELAY4, Rtemp, 0
 .endm
 
 INIT_PRU0:
