@@ -40,7 +40,7 @@
 //CLOCK: 1MHz <-> 1000ns
 .macro CLOCK_RISING_EDGE //clock = 1, then delay 490ns
     SET CLK
-	MOV Rtemp, 49 //((49-1) * 2 + 2)(instructions) * 5 (ns/instruction) = 490ns delay
+	MOV Rtemp, 48 //((49-1) * 2 + 2)(instructions) * 5 (ns/instruction) = 490ns delay
 DELAY1:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY1, Rtemp, 0
@@ -48,7 +48,7 @@ DELAY1:
 
 .macro CLOCK_FALLING_EDGE //clock = 0, then delay 490ns
     CLR CLK
-	MOV Rtemp, 49 //490 ns delay
+	MOV Rtemp, 48 //490 ns delay
 DELAY2:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY2, Rtemp, 0
@@ -62,7 +62,7 @@ DELAY2:
 
 .macro CLOCK_FALLING_EDGE_SH //clock = 0, then delay 480ns
     CLR CLK
-	MOV Rtemp, 48 //480 ns delay 
+	MOV Rtemp, 47 //480 ns delay 
 DELAY3: 
 	SUB Rtemp, Rtemp, 1 //This allows us to fit 4 instructions afterwards, rather than 2
 	QBNE DELAY3, Rtemp, 0
@@ -206,7 +206,7 @@ WaitForNextFrame:
 
 WaitForNextFrame2:
     CLR CLK
-	MOV Rtemp, 47 //470 ns delay 
+	MOV Rtemp, 46 //470 ns delay 
     DELAYFin: 
 	    SUB Rtemp, Rtemp, 1 //This allows us to fit 4 instructions afterwards, rather than 2
 	    QBNE DELAYFin, Rtemp, 0
@@ -217,7 +217,7 @@ WaitForNextFrame2:
     ADD Rdonothing, Rdonothing, 0
     CLR SH //keep SH low. Yes, I am overcomplicating the program for the sake of not being even 5ns off clock, m'kay. 
            //With so many pixels + pseudopixels in total, we could end up being even 100ns off by the time a frame ends!
-    QBNE DummyOutLast1, Rrandom, 0
+    QBNE WaitForNextFrame, Rextratimecntr, 0
 
 //================================CHECK FRAMES================================
 CheckFrames:
