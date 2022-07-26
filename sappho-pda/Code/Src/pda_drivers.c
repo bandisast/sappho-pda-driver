@@ -176,8 +176,8 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 
 	if (fps >= (int) (S_TO_uS/prog_total_cycles) || fps < 1)
 	{
-		fps = (int) (S_TO_uS/prog_total_cycles)
-		printf("[Warning]: Invalid fps argument; Fps automatically set to its maximum value.\n");
+		fps = (int) (S_TO_uS/prog_total_cycles);
+		printf("Warning: Invalid fps argument; Fps automatically set to its maximum value.\n");
 	}
 exit:
 	return result;
@@ -186,7 +186,7 @@ exit:
 static uint32_t Delay_Calculation(void)
 {
 	intgr_delay=(int) (1000*intgr_time)/clkfreq;  //Kinda useless when your clock is 1000 KHz but keeping this here in case the clock frequency changes again
-	extra_time = S_TO_uS/fps - (KHZ_TO_MHZ*prog_total_cycles)/clkfreq
+	extra_time = S_TO_uS/fps - (KHZ_TO_MHZ*prog_total_cycles)/clkfreq;
 	return NO_ERR;
 }
 
@@ -230,7 +230,7 @@ static uint32_t Mem_Alloc(void)
 	
 	pru_shared_ram[Pixels_Offset] = PIXELS;
 	pru_shared_ram[Frames_Offset] = frames;
-	pru_shared_ram[ExtraTime_Offset] = extra_time
+	pru_shared_ram[ExtraTime_Offset] = extra_time;
 	pru_shared_ram[DDR_Addr_Offset] = ddr_address; 
 	pru_shared_ram[DDR_Size_Offset] = sample_len;
 	pru_shared_ram[Integr_Time] = intgr_delay;
