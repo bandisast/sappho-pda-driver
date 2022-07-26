@@ -135,9 +135,9 @@ MAIN_PRU0:
 //ENTER SAMPLING STAGE
     CLOCK_RISING_EDGE
     MOV Rpixelscntr, Rpixels
-    MOV Rshtimer, RintegrTime
+    MOV Rshcntr, Rshtimer
     CLOCK_FALLING_EDGE
-	LSR Rshtimer, Rshtimer, 1 //divide integration time by 2 because the sampling loops have two clock cycles
+	LSR Rshcntr, Rshcntr, 1 //divide integration time by 2 because the sampling loops have two clock cycles
     SUB Rshcntr, Rshcntr, 3 //remove 3*2 clock cycles from SH counter
 
 //Loop between DummyOutStart1 and DummyOutStart2 until it's time for an SH pulse. If it's time, for an SH pulse, go to DummyOutSH.
