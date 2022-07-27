@@ -158,7 +158,7 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 		printf("Example: ./pda_drivers_exec 10 120 50\n");
 		printf("First argument: Number of Frames \n");
 		printf("Second argument: Integration Time in us. Min = 33.75 us, Max = 22020 us \n");
-		printf("Third argument: Frames per second (fps). Min = 1 Hz. Max = 322 Hz \n");
+		printf("Third argument: Frames per second (fps). Min = 1 fps. Max = 322 fps \n");
 		printf("Please try again.\n");
 		goto exit;
 	}
@@ -186,7 +186,7 @@ exit:
 static uint32_t Delay_Calculation(void)
 {
 	intgr_delay=(int) (1000*intgr_time)/clkfreq;  //Kinda useless when your clock is 1000 KHz but keeping this here in case the clock frequency changes again
-	extra_time = S_TO_uS/fps - (KHZ_TO_MHZ*prog_total_cycles)/clkfreq;
+	extra_time = S_TO_uS/fps - (KHZ_TO_MHZ*prog_total_cycles)/clkfreq; // ^--- I should play the lottery next time; now the clock frequency is 500 KHz 
 	return NO_ERR;
 }
 
@@ -273,8 +273,12 @@ exit:
 static void Wait_For_PRUs(void)
 {
 	while(pru_shared_ram[Handshake0_Offset] != 55255);	//Wait for PRU0 to finish.
+
+	printf("PRU0 handshake sent\n");
 	prussdrv_pru_wait_event(PRU_EVTOUT_1);	//Wait for PRU1 to finish.
+	printf("PRU1 handshake sent\n");
 	prussdrv_pru_clear_event (PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
+	printf("PRU clear event sent\n");
 }
 
 static uint32_t Deinit_PRU(void)
