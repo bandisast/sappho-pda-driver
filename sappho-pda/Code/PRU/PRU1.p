@@ -185,7 +185,7 @@ MAIN_PRU1:
 	SBCO Rdata, c0, Rtemp.w0, 4
 		
 	SHORTdelay		//DELAY FOR INTERRUPT LATENCY
-	//SlewRateDelay
+	SlewRateDelay
 	SET DEBUG_PIN
 	
 	MOV r31, 32		//SYS_16 -> TRIGGER ADC CONVERSION
