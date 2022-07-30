@@ -165,6 +165,7 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 	
 	clkfreq = 1000;
 	frames = abs(atoi(argv[1]));
+	frames++; //The first frame always contains junk data, so we skip it. Therefore, we add an extra frame here for parity. :)
 	intgr_time = abs(atof(argv[2]));
 	fps = abs(atof(argv[3]));
 	
@@ -274,11 +275,11 @@ static void Wait_For_PRUs(void)
 {
 	while(pru_shared_ram[Handshake0_Offset] != 55255);	//Wait for PRU0 to finish.
 
-	printf("PRU0 handshake sent\n");
+	//printf("PRU0 handshake sent\n");
 	prussdrv_pru_wait_event(PRU_EVTOUT_1);	//Wait for PRU1 to finish.
-	printf("PRU1 handshake sent\n");
+	//printf("PRU1 handshake sent\n");
 	prussdrv_pru_clear_event (PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
-	printf("PRU clear event sent\n");
+	//printf("PRU clear event sent\n");
 }
 
 static uint32_t Deinit_PRU(void)

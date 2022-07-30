@@ -6,7 +6,3 @@ rm /home/debian/sappho-pda/Code/Build/gpio.o
 rm /home/debian/sappho-pda/Code/Build/pda_drivers.o
 rm /home/debian/sappho-pda/Code/Build/debug.o
 rm /home/debian/sappho-pda/Code/Build/sample_file.o
-
-
-
-

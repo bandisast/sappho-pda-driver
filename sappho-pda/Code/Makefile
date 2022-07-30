@@ -15,7 +15,7 @@ LIBS = -lpthread -lprussdrv -lm
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 	
-pda_drivers_exec: $(OBJ)
+sappho_exec: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 	
 .PHONY: clean
