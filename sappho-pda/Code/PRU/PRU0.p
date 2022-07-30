@@ -278,3 +278,4 @@ WaitStageSH:
     CLOCK_RISING_EDGE 
     ADD Rdonothing, Rdonothing, 0
     JMP WaitForNextFrame2 //1000ns since SH
+    

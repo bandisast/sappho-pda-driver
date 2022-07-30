@@ -71,7 +71,7 @@ exit:
 uint32_t Save_Samples(void)
 {
 	uint32_t result = FILE_ERR;
-	uint32_t i = 0;
+	uint32_t i = 1500; //legit the only thing that actually worked for skipping the first frame is to pretend it doesn't exist. There is no war in Ba Sing Se.
 	FILE *samples_file = fopen(file_name, "w");
 	
 	if (samples_file != NULL) {
@@ -82,7 +82,7 @@ uint32_t Save_Samples(void)
 		fprintf(samples_file, "CLK signal frequency: 2000KHz");
 		fprintf(samples_file, "==============================\n");
 		
-		for( i = 0; i < (sample_len / 2); i++) {
+		for( i = 1500; i < (sample_len / 2); i++) {
 			fprintf(samples_file, "%d\n", ddr_casted[i]);
 		}
 		
