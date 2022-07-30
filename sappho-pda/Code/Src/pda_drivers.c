@@ -161,6 +161,7 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 	
 	clkfreq = 2000;
 	frames = abs(atoi(argv[1]));
+	frames++; //first frame = junk data
 	intgr_time = abs(atof(argv[2]));
 	//fps = abs(atof(argv[3]));
 	

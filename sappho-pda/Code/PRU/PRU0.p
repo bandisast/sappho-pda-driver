@@ -32,26 +32,26 @@
 #define	SH			r30.t7 //P9_25
 #define ICG         		r30.t2 //P9_30
 
-//CLOCK: 2MHz <-> 500ns
-.macro CLOCK_RISING_EDGE //clock = 1, then delay 240ns
+//CLOCK: 0.5MHz <-> 2000ns
+.macro CLOCK_RISING_EDGE //clock = 1, then delay 990ns
     SET CLK
-	MOV Rtemp, 48 //(24 * 2 + 2)(instructions) * 5 (ns/instruction) = 240ns delay
+	MOV Rtemp, 98 //990ns delay
 DELAY1:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY1, Rtemp, 0
 .endm
 
-.macro CLOCK_FALLING_EDGE //clock = 0, then delay 240ns
+.macro CLOCK_FALLING_EDGE //clock = 0, then delay 990ns
     CLR CLK
-	MOV Rtemp, 48 //240 ns delay
+	MOV Rtemp, 98 //990 ns delay
 DELAY2:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY2, Rtemp, 0
 .endm
 
-.macro QuarterClockDelay //120ns
+.macro QuarterClockDelay //490ns
     ADD Rdonothing, Rdonothing, 0
-    MOV Rtemp, 24
+    MOV Rtemp, 48 //490 ns delay
 DELAY3:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY3, Rtemp, 0
@@ -64,7 +64,7 @@ DELAY3:
     ADD Rdonothing, Rdonothing, 0
 .endm
 
-.macro CLOCK_WAVE //a full 2MHz wave (500ns)
+.macro CLOCK_WAVE //a full 0.5MHz wave (2000ns)
     CLOCK_FALLING_EDGE
     CLOCK_FIX 
     CLOCK_RISING_EDGE
@@ -107,16 +107,14 @@ MAIN_PRU0:
     SET SH //SH t3 START
     ADD Rdonothing, Rdonothing, 0
     CLOCK_WAVE
-    CLOCK_WAVE
     CLOCK_RISING_EDGE
     CLOCK_FIX
     CLOCK_FALLING_EDGE
-    CLR SH //SH t3 END -> 1500ns
+    CLR SH //SH t3 END -> 4000ns
     ADD Rdonothing, Rdonothing, 0    
     CLOCK_WAVE
     CLOCK_WAVE
-    CLOCK_WAVE
-    CLOCK_WAVE //t1 ~ 2015ns
+    CLOCK_WAVE //t1 ~ 6000ns
     SET CLK
     SET ICG //ICG STOP (t1+t3)
     CLOCK_RISING_EDGE

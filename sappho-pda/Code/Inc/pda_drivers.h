@@ -51,7 +51,7 @@
 
 /* PDA */
 #define PIXELS 			(1500)
-#define MIN_INTGR_TIME	(1600)
+#define MIN_INTGR_TIME	(3099)
 #define MAX_INTGR_TIME	(22000)
 
 /* CALCULATION MACROS */
