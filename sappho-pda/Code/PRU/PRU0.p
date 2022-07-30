@@ -37,18 +37,18 @@
 #define	SH			r30.t7 //P9_25
 #define ICG         r30.t2 //P9_30
 
-//CLOCK: 1MHz <-> 1000ns
-.macro CLOCK_RISING_EDGE //clock = 1, then delay 490ns
+//CLOCK: 0.5MHz <-> 2000ns
+.macro CLOCK_RISING_EDGE //clock = 1, then delay 990ns
     SET CLK
-	MOV Rtemp, 49 //((49-1) * 2 + 2)(instructions) * 5 (ns/instruction) = 490ns delay
+	MOV Rtemp, 98 //990ns delay
 DELAY1:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY1, Rtemp, 0
 .endm
 
-.macro CLOCK_FALLING_EDGE //clock = 0, then delay 490ns
+.macro CLOCK_FALLING_EDGE //clock = 0, then delay 990ns
     CLR CLK
-	MOV Rtemp, 49 //490 ns delay
+	MOV Rtemp, 98 //990 ns delay
 DELAY2:
 	SUB Rtemp, Rtemp, 1
 	QBNE DELAY2, Rtemp, 0
@@ -60,26 +60,26 @@ DELAY2:
     ADD Rdonothing, Rdonothing, 0
 .endm
 
-.macro CLOCK_FALLING_EDGE_SH //clock = 0, then delay 480ns
+.macro CLOCK_FALLING_EDGE_SH //clock = 0, then delay 980ns
     CLR CLK
-	MOV Rtemp, 48 //480 ns delay 
+	MOV Rtemp, 97 //980 ns delay 
 DELAY3: 
 	SUB Rtemp, Rtemp, 1 //This allows us to fit 4 instructions afterwards, rather than 2
 	QBNE DELAY3, Rtemp, 0
 .endm
 
-.macro CLOCK_WAVE //a full 1MHz wave (1000ns)
+.macro CLOCK_WAVE //a full 0.5MHz wave (2000ns)
     CLOCK_RISING_EDGE
     CLOCK_FIX 
     CLOCK_FALLING_EDGE
     CLOCK_FIX
 .endm
 
-.macro CLOCK_NO_OP_QUARTER_DELAY //240ns delay, no operation
-	MOV Rtemp, 24 //240 ns delay
+.macro CLOCK_NO_OP_QUARTER_DELAY //490 ns delay, no operation
+	MOV Rtemp, 48 //490 ns delay
 DELAY4:
 	SUB Rtemp, Rtemp, 1
-	QBNE DELAY3, Rtemp, 0
+	QBNE DELAY4, Rtemp, 0
 .endm
 
 INIT_PRU0:
@@ -121,23 +121,23 @@ MAIN_PRU0:
     CLOCK_RISING_EDGE
     LSR Rextratimecntr, Rextratimecntr, 1  //divide Rextratimecntr by 2, because the loops last 2 CLK pulses
     CLOCK_FALLING_EDGE
-    CLR SH //SH t3 END -> 1000ns
+    CLR SH //SH t3 END -> 2000ns
     MOV Rrandom, 32  //32 dummy outputs in the beginning
 
     CLOCK_WAVE
     CLOCK_WAVE
     CLOCK_WAVE
     SET CLK   
-    SET ICG //ICG STOP (t1+t3) | t1 ~ 3015ns
+    SET ICG //ICG STOP (t1+t3) | t1 ~ 6015ns
     CLOCK_RISING_EDGE
     CLOCK_FALLING_EDGE
     CLOCK_FIX
 //ENTER SAMPLING STAGE
     CLOCK_RISING_EDGE
     MOV Rpixelscntr, Rpixels
-    MOV Rshtimer, RintegrTime
+    MOV Rshcntr, Rshtimer
     CLOCK_FALLING_EDGE
-	LSR Rshtimer, Rshtimer, 1 //divide integration time by 2 because the sampling loops have two clock cycles
+	LSR Rshcntr, Rshcntr, 1 //divide integration time by 2 because the sampling loops have two clock cycles
     SUB Rshcntr, Rshcntr, 3 //remove 3*2 clock cycles from SH counter
 
 //Loop between DummyOutStart1 and DummyOutStart2 until it's time for an SH pulse. If it's time, for an SH pulse, go to DummyOutSH.
@@ -206,7 +206,7 @@ WaitForNextFrame:
 
 WaitForNextFrame2:
     CLR CLK
-	MOV Rtemp, 47 //470 ns delay 
+	MOV Rtemp, 96 //970 ns delay 
     DELAYFin: 
 	    SUB Rtemp, Rtemp, 1 //This allows us to fit 4 instructions afterwards, rather than 2
 	    QBNE DELAYFin, Rtemp, 0
@@ -216,8 +216,8 @@ WaitForNextFrame2:
     QBEQ CheckFrames, Rextratimecntr, 0 //skip the next 3 instructions if it's time for the next frame (to prevent clock skew) and jump to CheckFrames
     ADD Rdonothing, Rdonothing, 0
     CLR SH //keep SH low. Yes, I am overcomplicating the program for the sake of not being even 5ns off clock, m'kay. 
-           //With so many pixels + pseudopixels in total, we could end up being even 100ns off by the time a frame ends!
-    QBNE DummyOutLast1, Rrandom, 0
+           //With so many pixels + pseudopixels in total, we could end up being even 200ns off by the time a frame ends!
+    QBNE WaitForNextFrame, Rextratimecntr, 0
 
 //================================CHECK FRAMES================================
 CheckFrames:
@@ -240,7 +240,7 @@ DummyOutSH:
 
     CLOCK_RISING_EDGE 
     ADD Rdonothing, Rdonothing, 0
-    JMP DummyOutStart2 //500ns since SH
+    JMP DummyOutStart2 //1000ns since SH
     
 
 SamplingLoopSH:
@@ -254,8 +254,8 @@ SamplingLoopSH:
     CLOCK_NO_OP_QUARTER_DELAY
     MOV r31, 32 | 2	//interrupt PRU1 -> Request interrupt
     CLOCK_NO_OP_QUARTER_DELAY
-    CLOCK_FIX //495ns since SET CLK
-    JMP SamplingLoop2
+    CLOCK_FIX 
+    JMP SamplingLoop2 //1000ns since SH
 
 DummyLastSH:
     CLOCK_FALLING_EDGE_SH
@@ -266,7 +266,7 @@ DummyLastSH:
 
     CLOCK_RISING_EDGE 
     ADD Rdonothing, Rdonothing, 0
-    JMP DummyOutLast2 //500ns since SH
+    JMP DummyOutLast2 //1000ns since SH
 
 WaitStageSH:
     CLOCK_FALLING_EDGE_SH
@@ -277,4 +277,5 @@ WaitStageSH:
 
     CLOCK_RISING_EDGE 
     ADD Rdonothing, Rdonothing, 0
-    JMP WaitForNextFrame2 //500ns since SH
+    JMP WaitForNextFrame2 //1000ns since SH
+    
