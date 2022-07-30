@@ -10,7 +10,7 @@
  *Bandis Asterios
  *Thesis: "Scattering measurements with the Beaglebone microcomputer for portable biomedical sensors"
  *Hardware: TSC-ADC Module, PRU0, PRU1.
- *I/O:	AIN0 (AO), GPIO3_19 (CLK), GPIO3_21 (SH), GPIO1_13 (DEBUG), GPIO 3_16 (ICH)
+ *I/O:	AIN0 (AO), GPIO3_19 (CLK), GPIO3_21 (SH), GPIO1_13 (DEBUG), GPIO 3_16 (ICG)
  */
  
 /dts-v1/;
