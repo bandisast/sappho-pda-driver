@@ -157,13 +157,13 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 		printf("Incorrect arguments.\n");
 		printf("Example: ./pda_drivers_exec 10 120 50\n");
 		printf("First argument: Number of Frames \n");
-		printf("Second argument: Integration Time in us. Min = 33.75 us, Max = 22020 us \n");
-		printf("Third argument: Frames per second (fps). Min = 1 fps. Max = 322 fps \n");
+		printf("Second argument: Integration Time in us. Min = 10 us, Max = 10 ms \n");
+		printf("Third argument: Frames per second (fps). Min = 1 fps. Max = 161 fps \n");
 		printf("Please try again.\n");
 		goto exit;
 	}
 	
-	clkfreq = 1000;
+	clkfreq = 500;
 	frames = abs(atoi(argv[1]));
 	frames++; //The first frame always contains junk data, so we skip it. Therefore, we add an extra frame here for parity. :)
 	intgr_time = abs(atof(argv[2]));
@@ -175,7 +175,7 @@ static uint32_t Argv_Handler(int *argc, char *argv[])
 	
 	result = NO_ERR;
 
-	if (fps >= (int) (S_TO_uS/prog_total_cycles) || fps < 1)
+	if (fps >= (int) (S_TO_uS/prog_total_cycles/(1000/clkfreq)) || fps < 1)
 	{
 		fps = (int) (S_TO_uS/prog_total_cycles);
 		printf("Warning: Invalid fps argument; Fps automatically set to its maximum value.\n");
