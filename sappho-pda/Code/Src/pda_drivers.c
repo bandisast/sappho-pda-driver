@@ -187,7 +187,7 @@ exit:
 static uint32_t Delay_Calculation(void)
 {
 	intgr_delay=(int) (1000*intgr_time)/(2*clkfreq);  //Kinda useless when your clock is 1000 KHz but keeping this here in case the clock frequency changes again
-	extra_time = S_TO_uS/fps - (KHZ_TO_MHZ*prog_total_cycles)/clkfreq; // ^--- I should play the lottery next time; now the clock frequency is 500 KHz 
+	extra_time = S_TO_uS/fps - (KHZ_TO_MHZ*prog_total_cycles)/(2*clkfreq); // ^--- I should play the lottery next time; now the clock frequency is 500 KHz 
 	return NO_ERR;
 }
 
