@@ -3,6 +3,16 @@
 //Original author:  Stratos Gkagkanis (GH: @StratosGK)
 //Adapted for the S.AP.P.H.O. PDA by: Bantis Asterios (GH: @bandisast)
 
+
+//                    +------------------------------------------------------------------------------------------------------+
+//                    v                                                                                                      |
+//+-----------+     +-----------+     +---------------+     +----------+     +--------------+     +------------------+     +-------------+     +------+
+//| INIT_PRU0 | --> | MAIN_PRU0 | --> | DummyOutStart | --> | Sampling | --> | DummyOutLast | --> | WaitForNextFrame | --> | CheckFrames | --> | DONE |
+//+-----------+     +-----------+     +---------------+     +----------+     +--------------+     +------------------+     +-------------+     +------+
+//                                      ^           |         ^      |         ^          |         ^              |
+//                                      +-----------+         +------+         +----------+         +--------------+
+
+
 .origin 0
 .entrypoint INIT_PRU0
 //Constants
@@ -140,6 +150,14 @@ MAIN_PRU0:
 	LSR Rshcntr, Rshcntr, 1 //divide integration time by 2 because the sampling loops have two clock cycles
     SUB Rshcntr, Rshcntr, 3 //remove 3*2 clock cycles from SH counter
 
+
+//   +-------------------------------------------+
+//   |                                           v
+// +----------------+     +--------------+     +----------------+
+// | DummyOutStart1 | --> | DummyStartSH | --> | DummyOutStart2 |
+// +----------------+     +--------------+     +----------------+
+//      ^                                          |
+//      +------------------------------------------+
 //Loop between DummyOutStart1 and DummyOutStart2 until it's time for an SH pulse. If it's time, for an SH pulse, go to DummyOutSH.
 DummyOutStart1:
     CLOCK_RISING_EDGE
@@ -158,6 +176,13 @@ DummyOutStart2:
            //With so many pixels + pseudopixels in total, we could end up being even 100ns off by the time a frame ends!
     QBNE DummyOutStart1, Rrandom, 0
 
+//   +-------------------------------------------+
+//   |                                           v
+// +---------------+     +------------+     +---------------+
+// | SamplingLoop1 | --> | SamplingSH | --> | SamplingLoop2 |
+// +---------------+     +------------+     +---------------+
+//      ^                                          |
+//      +------------------------------------------+
 SamplingLoop1: 
     CLOCK_RISING_EDGE //almost the same loops as above, but with sampling enabled
     SUB Rshcntr, Rshcntr, 1
@@ -178,6 +203,13 @@ SamplingLoop2:
     CLR SH
     QBNE SamplingLoop1, Rpixelscntr, 0
 
+//   +-------------------------------------------+
+//   |                                           v
+// +---------------+     +-------------+     +---------------+
+// | DummyOutLast1 | --> | DummyLastSH | --> | DummyOutLast2 |
+// +---------------+     +-------------+     +---------------+
+//      ^                                          |
+//      +------------------------------------------+
 DummyOutLast1:
     CLOCK_RISING_EDGE
     SUB Rshcntr, Rshcntr, 1
@@ -195,6 +227,14 @@ DummyOutLast2:
            //With so many pixels + pseudopixels in total, we could end up being even 100ns off by the time a frame ends!
     QBNE DummyOutLast1, Rrandom, 0
 
+//Same panic, different disco. 
+//   +-------------------------------------------+
+//   |                                           v
+// +-----------------+     +-------------+     +-----------------+
+// | Wait4NextFrame1 | --> | WaitStageSH | --> | Wait4NextFrame2 |
+// +-----------------+     +-------------+     +-----------------+
+//      ^                                          |
+//      +------------------------------------------+
 WaitForNextFrame:
     CLOCK_RISING_EDGE
     SUB Rshcntr, Rshcntr, 1
