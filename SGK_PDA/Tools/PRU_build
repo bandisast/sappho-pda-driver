@@ -1,6 +1,9 @@
 #!/bin/bash
-gcc sgk_pda.c -o sgk_pda -lpthread -lprussdrv -lm
+pasm -b /home/debian/SGK_PDA/Code/PRU/PRU0.p
 sleep .1
-pasm -b PRU0.p
+pasm -b /home/debian/SGK_PDA/Code/PRU/PRU1.p
 sleep .1
-pasm -b PRU1.p
+mv PRU0.bin /home/debian/SGK_PDA/Code/PRU/
+sleep .1
+mv PRU1.bin /home/debian/SGK_PDA/Code/PRU/
+sleep .1
