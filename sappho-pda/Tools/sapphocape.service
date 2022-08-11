@@ -1,0 +1,8 @@
+[Unit]
+Description=SAPPHO-PDA Cape Service
+
+[Service]
+ExecStart=/home/debian/sappho-pda/Tools/capeMod.sh
+
+[Install]
+WantedBy=multi-user.target
