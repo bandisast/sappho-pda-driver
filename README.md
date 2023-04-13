@@ -19,7 +19,36 @@ This repository is the main repository for the [SAPPHO project](http://microengi
   - This directory contains the source code required for using the Toshiba TCD1103GFG PDA sensor in conjunction with the Beaglebone Black Rev. C microcomputer, as well as some installation scripts. This code has been forked from StratosGK's "SGK_PDA" driver for the AMS TSL1401CL PDA. Please copy this directory under the directory `/home/debian/`.
   
 ### Installation & Building
-* TODO
+#### Beaglebone Black Rev. C
+##### Prerequisites
+* Edit /etc/systemd/journald.conf (limit the amount of storage used for logging purposes):
+  - `SystemMaxUse=16M`
+  - `#MaxLevelStore=warning`
+  - `#MaxLevelSyslog=warning`
+* Edit /boot/uEnv.txt (disable the Universal Cape):
+  - `dtb=am335x-boneblack-overlay.dtb`
+  - `cmline-coherent_pool=1M net.ifname=0 quiet`
+  - `#cape_universal=enable`
+* Reboot the Beaglebone microcomputer
+  - `sudo reboot`
+* Replace the Linux kernel:
+  - `cd /opt/scripts/tools/`
+  - `git pull`
+  - `sudo ./update_kernel.sh --bone-kernel --lts4_4`
+* Reboot the Beaglebone microcomputer again
+
+##### Installation
+* Clone the repository on the Beaglebone microcomputer
+  - `git clone https://github.com/bandisast/sappho-pda-driver.git`
+* Execute the installation script:
+  - `cd ~/sappho-pda/Tools`
+  - `sudo bash fullInstall.sh`
+* Compile the C source code
+  - `cd ..`
+  - `cd Code`
+  - `make`
+
+You should now be able to use the driver as such: `./sappho_exec framesCount intgrTime fpsCount`. For example, `./sappho_exec 10 40 50`.
 
 ### Future plans
 - [ ] Support the Arduino UNO R4
