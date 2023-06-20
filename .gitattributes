@@ -1,3 +1,2 @@
 *.p linguist-language=Assembly
 *.m linguist-language=Octave
-*img.xz filter=lfs diff=lfs merge=lfs -text
