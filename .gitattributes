@@ -1,0 +1,2 @@
+*.p linguist-language=Assembly
+*.m linguist-language=Octave
