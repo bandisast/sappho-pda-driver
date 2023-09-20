@@ -58,4 +58,4 @@ You should now be able to use the driver as such: `./sappho_exec framesCount int
 
 ### Current Primary Contributors
 * [@bandisast](https://github.com/bandisast)
-* [@MariaMich](https://github.com/MariaMich)
+* [@maro-michailidou](https://github.com/maro-michailidou)
