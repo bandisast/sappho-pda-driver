@@ -1,3 +1,5 @@
+# NOTE: As of 2023-10-30, this repository is a public archive. The [Sappho Project has moved from my personal account to a GitHub Organisation](https://github.com/Sappho-Project) and the directories have been split into separate repositories.
+
 # S.AP.P.H.O. Project
 ## Scattering-based APparatus for Portable Haematological analysis via Optics
 
